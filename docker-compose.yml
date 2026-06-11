@@ -1,0 +1,17 @@
+services:
+  app:
+    build:
+      context: .
+      args:
+        TELERIK_LICENSE: ${TELERIK_LICENSE:-}
+    image: convergence-atelier:latest
+    environment:
+      - USE_MOCKS=true
+    ports:
+      - "80:80"
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request;urllib.request.urlopen('http://127.0.0.1:8000/api/health')"]
+      interval: 15s
+      timeout: 5s
+      retries: 5

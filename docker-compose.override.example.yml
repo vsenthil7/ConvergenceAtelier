@@ -1,0 +1,8 @@
+# VPS override: remap the single app port off 80 onto the reserved 8095,
+# clear of all other projects on the box (8080-8094, 5432-5433, 6379, 6006,
+# 9000-9001, 7880-7882). Backend stays internal; DB port 5434 is reserved for
+# when Postgres is added in a later sprint.
+services:
+  app:
+    ports: !override
+      - "8095:80"

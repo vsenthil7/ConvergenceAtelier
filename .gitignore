@@ -13,6 +13,7 @@ _sentinel*
 node_modules/
 dist/
 dist-ssr/
+dev-dist/
 *.local
 .vite/
 playwright-report/
@@ -31,6 +32,7 @@ htmlcov/
 coverage.xml
 .mypy_cache/
 .ruff_cache/
+*.egg-info/
 
 # OS / editor
 .DS_Store
@@ -38,5 +40,6 @@ Thumbs.db
 .idea/
 .vscode/
 
-# Docker local overrides for the dev box (the VPS one is generated on the box)
+# Docker local override (the active one is generated on the box)
+docker-compose.override.yml
 docker-compose.local.yml
