@@ -1,0 +1,42 @@
+# Secrets — never commit
+telerik-license.txt
+.env
+.env.*
+!.env.example
+
+# Local helper scripts / scratch
+_*.bat
+_*.txt
+_sentinel*
+
+# Node
+node_modules/
+dist/
+dist-ssr/
+*.local
+.vite/
+playwright-report/
+test-results/
+blob-report/
+.playwright/
+
+# Python
+__pycache__/
+*.py[cod]
+.venv/
+venv/
+.pytest_cache/
+.coverage
+htmlcov/
+coverage.xml
+.mypy_cache/
+.ruff_cache/
+
+# OS / editor
+.DS_Store
+Thumbs.db
+.idea/
+.vscode/
+
+# Docker local overrides for the dev box (the VPS one is generated on the box)
+docker-compose.local.yml
