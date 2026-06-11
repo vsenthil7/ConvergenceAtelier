@@ -16,6 +16,8 @@ dist-ssr/
 dev-dist/
 *.local
 .vite/
+coverage/
+*.tsbuildinfo
 playwright-report/
 test-results/
 blob-report/
