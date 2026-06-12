@@ -60,19 +60,37 @@ adds the participation layer and fixes the two UX bugs surfaced in review.
 
 | ID | Requirement | Code | Test | Status |
 |----|-------------|------|------|--------|
-| R3b.1 | Public self-registration (creates `user`; cannot self-grant admin) | `services/auth_service.py`, `api/auth.py`, `schemas/auth.py` | `test_auth_service.py`, `test_auth.py` | ⬜ |
-| R3b.2 | `EventRegistration` model (event↔user, status, unique) | `models/registration.py`, migration | `test_registration_service.py` | ⬜ |
-| R3b.3 | Register / unregister for an event (attendee self-service) | `services/registration_service.py`, `api/events.py` | `test_registration_service.py`, `test_registration_api.py` | ⬜ |
-| R3b.4 | Participant roster per event (admin) + my-status (attendee) | `services/registration_service.py`, `api/events.py` | `test_registration_api.py` | ⬜ |
-| R3b.5 | Tenant isolation + RBAC on registration endpoints | `api/events.py` | `test_registration_api.py` | ⬜ |
-| R3b.6 | Seed real multi-track sessions for demo events | `services/seed.py` | `test_seed.py` | ⬜ |
+| R3b.1 | Public self-registration (creates `user`; cannot self-grant admin) | `services/auth_service.py`, `api/auth.py`, `schemas/auth.py` | `test_auth_service.py`, `test_registration_api.py`, `test_api_helpers.py` | ✅ |
+| R3b.2 | `EventRegistration` model (event↔user, status, unique) + migration | `models/registration.py`, `migrations/versions/a1b2c3d4e5f6_*` | `test_registration_service.py` | ✅ |
+| R3b.3 | Register / unregister for an event (attendee self-service) | `services/registration_service.py`, `api/events.py` | `test_registration_service.py`, `test_registration_api.py` | ✅ |
+| R3b.4 | Participant roster per event (admin) + my-status (attendee) | `services/registration_service.py`, `api/events.py` | `test_registration_api.py`, `test_api_helpers.py` | ✅ |
+| R3b.5 | Tenant isolation + RBAC on registration endpoints | `api/events.py` | `test_registration_api.py` | ✅ |
+| R3b.6 | Seed real multi-track sessions ON event day for demo | `services/seed.py` | `test_seed.py` | ✅ |
 | R3b.7 | Frontend: self-registration panel on Login | `components/LoginView.tsx`, `lib/auth.ts` | `LoginView.test.tsx`, `auth.test.ts` | ⬜ |
 | R3b.8 | Frontend: event register button + roster on event page | `components/EventsView.tsx`, `lib/events.ts` | `EventsView.test.tsx`, `events.test.ts` | ⬜ |
 | R3b.9 | Fix: Add-user inline validation (explain disabled state) | `components/UsersView.tsx` | `UsersView.test.tsx` | ⬜ |
 | R3b.10 | Fix: empty-agenda "no sessions yet" affordance | `components/EventsView.tsx` | `EventsView.test.tsx` | ⬜ |
 
-_Plan committed to trackers before implementation (per operator instruction). Each row_
-_lands GREEN with 100% backend coverage / 100% frontend lines, git-first, same-cycle._
+_Backend (R3b.1–R3b.6) VERIFIED: 156 tests, 100% coverage, exit 0 (`41c5ade`); Alembic_
+_upgrade+downgrade verified on the new `event_registrations` table. Frontend rows next._
+
+## Sprint 7 — Event TYPES (product vision, planned)
+
+Goal: make the event a *configurable product* — `Event.event_type` enum + JSON `config`,
+with composable feature modules per type over the shared event/session/registration core.
+Each row lands GREEN independently with 100% coverage, git-first.
+
+| ID | Requirement | Status |
+|----|-------------|--------|
+| R7.1 | `event_type` enum + JSON `config` on Event; type-aware create/edit + grid badge | ⬜ |
+| R7.2 | Session `mode` (in_person/online/hybrid) + `stream_url` + `recording_url`; recordings catalog | ⬜ |
+| R7.3 | Hackathon module: Team + Submission (repo/demo links) + judging rubric + leaderboard | ⬜ |
+| R7.4 | Webinar module: stream provider + registration cap/waitlist + recording + reminders | ⬜ |
+| R7.5 | Linked/hybrid events: event-to-event links + cross-event session catalog | ⬜ |
+| R7.6 | Type-aware AI drafts (judging schedule / promo timeline / workshop plan) | ⬜ |
+
+_Design rule recorded: types are composable modules; never fork the Event model per type._
+
 
 ## Sprint 2 — Auth, multi-tenancy, RBAC, Postgres, SSO, demo data
 

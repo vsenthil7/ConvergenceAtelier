@@ -96,6 +96,26 @@ export function loginGoogle(
   );
 }
 
+export interface RegisterInput {
+  email: string;
+  full_name?: string;
+  password: string;
+  tenant_slug: string;
+}
+
+/** Public self-service signup. Always provisions a plain attendee. */
+export function registerPublic(
+  input: RegisterInput,
+  fetchImpl: typeof fetch = fetch,
+): Promise<TokenResponse> {
+  return request<TokenResponse>(
+    "/api/auth/register",
+    { method: "POST", body: JSON.stringify(input) },
+    null,
+    fetchImpl,
+  );
+}
+
 export function getAuthConfig(fetchImpl: typeof fetch = fetch): Promise<AuthConfig> {
   return request<AuthConfig>("/api/auth/config", { method: "GET" }, null, fetchImpl);
 }

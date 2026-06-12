@@ -71,15 +71,17 @@ Module 3A backend ✅ (132 tests) · Module 3B frontend ✅ (105 tests): discove
 WHY: today users belong to a *tenant*, not an *event*; there is no self-signup, no
 "join event", no per-event attendee list, and seeded events have zero sessions so
 agenda/discovery look empty. This sprint adds the participation layer + fixes UX bugs.
-- [ ] **Public self-registration**: `POST /api/auth/register` (creates a `user` in a
-      chosen public tenant; rejects privileged-role self-grant) + Login screen "Create account" panel
-- [ ] **Event registration model**: `EventRegistration(event_id, user_id, status)` +
-      `POST /api/events/{id}/register`, `DELETE …/register`, `GET …/participants` (RBAC: attendee self-registers; admin sees roster)
-- [ ] **Event page participation**: attendee sees "Register / Registered ✓" + their own status; admin sees participant roster per event
-- [ ] **Seed real sessions** so agenda + discovery + agenda-draft are populated for the demo (3–5 talks per demo event, multi-track)
-- [ ] **Fix: Add-user button** — inline validation hints (email format, password ≥ 8) so the disabled state is explained; show why it is disabled
-- [ ] **Fix: empty-agenda affordance** — "No sessions yet" message in agenda view instead of a blank calendar
-- [ ] Backend unit + functional + negative 100% · Frontend 100% lines · trackers same cycle
+- [x] **Public self-registration**: `POST /api/auth/register` (creates a `user` in a
+      chosen public tenant; rejects privileged-role self-grant) — backend ✅ (`41c5ade`)
+- [x] **Event registration model**: `EventRegistration(event_id, user_id, status)` +
+      `POST /api/events/{id}/register`, `DELETE …/register`, `GET …/registration`, `GET …/participants` (RBAC: attendee self-registers; admin sees roster) — backend ✅
+- [x] **Seed real sessions** — 6 multi-track talks per demo event, scheduled ON the event day (fixes blank agenda) — backend ✅
+- [x] Backend unit + functional + negative **156 tests, 100% cov, exit 0** (`41c5ade`); Alembic upgrade/downgrade verified
+- [ ] **Event page participation (frontend)**: attendee sees "Register / Registered ✓" + status; admin sees roster (R3b.8)
+- [ ] **Self-registration panel on Login (frontend)** (R3b.7)
+- [ ] **Fix: Add-user button** — inline validation hints (email format, password ≥ 8) so the disabled state is explained (R3b.9)
+- [ ] **Fix: empty-agenda affordance** — "No sessions yet" message instead of a blank calendar (R3b.10)
+- [ ] Frontend 100% lines · trackers same cycle
 
 ## S4 — Real-time engagement  ⬜
 - [ ] Live Q&A, polls, session sentiment (websocket/SSE)
@@ -96,6 +98,49 @@ agenda/discovery look empty. This sprint adds the participation layer + fixes UX
 - [ ] Demo seed dataset
 - [ ] Vultr deploy verified live + smoke
 - [ ] Unit + functional + negative + E2E 100%
+
+## S7 — Event TYPES: one platform, many event shapes  ⬜  ← NEW (product vision)
+
+**The big idea.** Today every event is the same shape (name/location/dates/sessions).
+Real events are NOT interchangeable: a hackathon needs team formation + project
+submissions + judging; a webinar needs a stream URL + registration cap + a recording;
+an in-person conference needs rooms, tracks, and check-in. Convergence Atelier becomes
+a *configurable* platform: pick an **event type** and the event unlocks the right
+feature modules. This is the differentiator — one organiser tool that adapts to the
+event instead of forcing every event into a calendar.
+
+**Model:** add `Event.event_type` (enum) + a typed `Event.config` (JSON) so each type
+carries its own settings without schema churn. Feature modules attach by type. The
+existing agenda/sessions/registration layers are shared by all types (composition,
+not duplication).
+
+### Event types (MVP set) and their distinctive feature modules
+| Type | What's distinctive | Module(s) to build |
+|------|--------------------|--------------------|
+| **conference** (default, exists) | multi-track agenda, speakers, rooms | agenda (have), tracks/rooms, check-in |
+| **hackathon** | teams, project submissions, judging, leaderboard | Team model, Submission model + repo/demo links, Judging rubric + scores, live Leaderboard |
+| **webinar** | single stream, capacity cap, recording, reminders | Stream URL + provider, registration cap + waitlist, recording link, reminder schedule |
+| **meetup** | RSVP, venue, casual, recurring | RSVP cap, recurrence rule, venue map |
+| **workshop** | limited seats, materials, prerequisites, cohort | Seat cap, materials/resource list, prerequisite gating |
+| **hybrid / online-linked** | links physical + multiple online events, shared catalog | Event-to-event linking, cross-event session catalog, online/offline session mode |
+
+### Cross-type capabilities (innovative, AI-first — reuse S3 discovery)
+- **Session mode** per session: `in_person | online | hybrid`, with stream/recording URL + meeting link (webinar/program video feature requested by operator).
+- **Recordings library**: any session can carry a recording URL → on-demand catalog after the event.
+- **Linked events**: an online event can be "linked" to a physical one (same series); discovery + agenda-draft can span linked events.
+- **Type-aware AI**: agenda-draft already exists; extend so a hackathon drafts a *judging schedule*, a webinar drafts a *promo timeline*, etc. (reuses the embedding engine — no new keys).
+
+### Sprint breakdown (each lands GREEN independently, git-first, 100% cov)
+- [ ] **S7.1 Event type + config**: `event_type` enum + JSON `config` on Event; type-aware create/edit; migration; type badge on Events grid. Backend + frontend 100%.
+- [ ] **S7.2 Session mode + recordings**: `mode` + `stream_url` + `recording_url` on Session; agenda shows online/in-person/▶ recording; "Recordings" catalog view. 100%.
+- [ ] **S7.3 Hackathon module**: Team + Submission models (repo/demo/description links), submission tracking states, judging rubric + scores, live leaderboard (Kendo Grid/Charts). 100%.
+- [ ] **S7.4 Webinar module**: stream URL + provider, registration cap + waitlist (reuses S3b registration), recording link, reminder schedule. 100%.
+- [ ] **S7.5 Linked / hybrid events**: event-to-event links + cross-event session catalog; discovery spans linked events. 100%.
+- [ ] **S7.6 Type-aware AI drafts**: agenda-draft variants per type (judging schedule / promo timeline / workshop plan). 100%.
+
+_Rationale recorded so future sprints stay disciplined: build types as composable modules
+over the shared event/session/registration core; never fork the Event model per type._
+
 
 ---
 
