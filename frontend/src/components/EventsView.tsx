@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useState } from "react";
-import { Grid, GridColumn, type GridCellProps } from "@progress/kendo-react-grid";
+import { Grid, GridColumn, type GridCustomCellProps } from "@progress/kendo-react-grid";
 import { Scheduler, DayView, WeekView } from "@progress/kendo-react-scheduler";
 import { Dialog } from "@progress/kendo-react-dialogs";
 import { Button } from "@progress/kendo-react-buttons";
@@ -67,10 +67,10 @@ export function EventsView({ fetchImpl = fetch, newEventDefaults, canWrite = tru
     await refresh();
   };
 
-  const ActionsCell = (props: GridCellProps) => {
+  const ActionsCell = (props: GridCustomCellProps) => {
     const row = props.dataItem as EventModel;
     return (
-      <td>
+      <td {...props.tdProps}>
         <Button
           fillMode="flat"
           onClick={() => setSelectedId(row.id)}
@@ -130,7 +130,7 @@ export function EventsView({ fetchImpl = fetch, newEventDefaults, canWrite = tru
             <GridColumn field="location" title="Location" />
             <GridColumn field="starts_at" title="Starts" />
             <GridColumn field="ends_at" title="Ends" />
-            <GridColumn title="Actions" cell={ActionsCell} />
+            <GridColumn title="Actions" cells={{ data: ActionsCell }} />
           </Grid>
         </div>
       )}

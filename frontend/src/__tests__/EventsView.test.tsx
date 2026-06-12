@@ -63,7 +63,7 @@ describe("EventsView", () => {
     render(<EventsView fetchImpl={f} />);
     expect(await screen.findByTestId("events-grid")).toBeInTheDocument();
     expect(await screen.findByTestId("agenda")).toBeInTheDocument();
-    expect(screen.getByText(/Keynote/)).toBeInTheDocument();
+    expect(screen.getAllByText(/Keynote/).length).toBeGreaterThan(0);
   });
 
   it("shows an error when loading fails (negative)", async () => {
