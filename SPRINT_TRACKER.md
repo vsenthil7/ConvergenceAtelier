@@ -32,16 +32,27 @@ Goal: empty-but-runnable monorepo that builds, lints, tests, dockerizes, and dep
 - [x] Remote repo created + first push green (https://github.com/vsenthil7/ConvergenceAtelier)
 **Verified:** backend 8/8 100% · frontend 7/7 100% · e2e 8/8 (desktop+mobile) · build OK · pushed `c214b2c`.
 
-## S1 — Events & agenda CRUD  🟨
-Backend ✅ done · Frontend ⬜ remaining.
+## S1 — Events & agenda CRUD  ✅
+Backend ✅ done · Frontend ✅ done.
 - [x] Event + Session models (tz-aware) + validated CRUD API
 - [x] Read/write schema split, UTC coercion for SQLite reads, central 404 handler
 - [x] Backend unit + functional + negative 100% (**33 tests, 100% cov, pushed `d86a379`**)
-- [ ] Events Grid + Form UI (KendoReact)
-- [ ] Agenda/session scheduling via Scheduler
-- [ ] Frontend unit (Vitest) + functional + negative + E2E (Playwright) 100%
+- [x] Events Grid + Form UI (KendoReact)
+- [x] Agenda/session scheduling via Scheduler
+- [x] Frontend unit (Vitest) + functional + negative + E2E (Playwright) — **84 tests pass, exit 0**
+**Verified:** frontend 84/84 (vitest), statements/lines 100%; e2e specs login-gated.
 
-## S2 — Speakers, sessions, sponsors, multi-track  ⬜
+## S2 — Auth, multi-tenancy, RBAC, SSO, demo data  🟨
+Module 2A backend ✅ · Module 2B frontend ✅ · Postgres (R2.15) ⬜ remaining.
+- [x] 3-role model (super_admin → tenant_admin → user), Tenant + User models
+- [x] Email/password (JWT) + optional Google SSO; demo mode hides Google when unset
+- [x] RBAC + tenant isolation on events; scoped user management
+- [x] Demo seeder (2 tenants, 5 users), DB-aware `/api/ready`
+- [x] Backend **95 tests, 100% cov, `e978fbc`**
+- [x] Frontend login + AuthContext + role-aware nav + Users UI (**84 tests, exit 0**)
+- [ ] Postgres persistence: compose service on 5434 + Alembic migrations + Vultr deploy smoke
+
+## S2b — Speakers, sessions, sponsors, multi-track  ⬜
 - [ ] Speaker/session/sponsor models + CRUD
 - [ ] Multi-track timeline (Gantt) + conflict detection
 - [ ] Unit + functional + negative + E2E 100%

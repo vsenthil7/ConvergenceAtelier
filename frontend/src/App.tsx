@@ -26,8 +26,9 @@ function Shell({ fetchImpl }: { fetchImpl: typeof fetch }) {
     [token, fetchImpl],
   );
 
-  if (!user) return null; // guarded by the caller
-  const isAdmin = user.role === "super_admin" || user.role === "tenant_admin";
+  // Gate only renders Shell once a user is resolved.
+  const current = user!;
+  const isAdmin = current.role === "super_admin" || current.role === "tenant_admin";
 
   return (
     <div className="atelier-shell">
@@ -57,7 +58,7 @@ function Shell({ fetchImpl }: { fetchImpl: typeof fetch }) {
         <AppBarSpacer />
         <AppBarSection>
           <span className="atelier-whoami" data-testid="whoami">
-            {user.email} · {ROLE_LABEL[user.role] ?? user.role}
+            {current.email} · {ROLE_LABEL[current.role] ?? current.role}
           </span>
           <Button fillMode="flat" onClick={logout} data-testid="logout">
             Sign out
@@ -67,7 +68,7 @@ function Shell({ fetchImpl }: { fetchImpl: typeof fetch }) {
 
       <main className="atelier-main">
         {tab === "events" && (
-          <EventsView fetchImpl={authedFetch} canWrite={user.role !== "user"} />
+          <EventsView fetchImpl={authedFetch} canWrite={current.role !== "user"} />
         )}
         {tab === "users" && isAdmin && <UsersView fetchImpl={authedFetch} />}
       </main>

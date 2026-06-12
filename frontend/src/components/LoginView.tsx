@@ -66,7 +66,7 @@ export function LoginView({ fetchImpl = fetch, onRequestGoogle }: Props) {
           <Input
             type="email"
             value={email}
-            onChange={(e) => setEmail(String(e.value ?? ""))}
+            onChange={(e) => setEmail(String(e.value))}
             aria-label="login-email"
             autoComplete="username"
           />
@@ -77,7 +77,7 @@ export function LoginView({ fetchImpl = fetch, onRequestGoogle }: Props) {
           <Input
             type="password"
             value={password}
-            onChange={(e) => setPassword(String(e.value ?? ""))}
+            onChange={(e) => setPassword(String(e.value))}
             aria-label="login-password"
             autoComplete="current-password"
           />

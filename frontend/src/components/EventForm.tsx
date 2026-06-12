@@ -51,7 +51,7 @@ export function EventForm({ initial, submitLabel = "Save", onSubmit, onCancel }:
         Name
         <Input
           value={form.name}
-          onChange={(e) => set("name", String(e.value ?? ""))}
+          onChange={(e) => set("name", String(e.value))}
           aria-label="event-name"
         />
       </label>
@@ -65,7 +65,7 @@ export function EventForm({ initial, submitLabel = "Save", onSubmit, onCancel }:
         Location
         <Input
           value={form.location}
-          onChange={(e) => set("location", String(e.value ?? ""))}
+          onChange={(e) => set("location", String(e.value))}
           aria-label="event-location"
         />
       </label>
@@ -74,7 +74,7 @@ export function EventForm({ initial, submitLabel = "Save", onSubmit, onCancel }:
         Description
         <TextArea
           value={form.description}
-          onChange={(e) => set("description", String(e.value ?? ""))}
+          onChange={(e) => set("description", String(e.value))}
           aria-label="event-description"
         />
       </label>

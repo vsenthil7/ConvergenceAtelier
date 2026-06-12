@@ -8,7 +8,14 @@ backend 8/8 · frontend 7/7 · e2e 8/8 · build OK · `c214b2c`.
 
 ## Sprint 1 — Events & agenda CRUD
 - Backend ✅ (33 tests, 100%, `d86a379`)
-- Frontend 🟨 authored (Grid/Form/Scheduler + tests), awaiting `npm install` verify (`287d7d6`)
+- Frontend ✅ VERIFIED (Grid/Form/Scheduler + tests, 84 frontend tests pass, exit 0)
+
+### S1 frontend requirements
+| R1.11 | Typed events client (injectable fetch) | `lib/events.ts` | `events.test.ts` | ✅ |
+| R1.12 | Event create/edit form + validation | `components/EventForm.tsx`, `lib/validation.ts` | `EventForm.test.tsx`, `validation.test.ts` | ✅ |
+| R1.13 | Events grid (Kendo Grid) | `components/EventsView.tsx` | `EventsView.test.tsx` | ✅ |
+| R1.14 | Agenda scheduler view | `components/EventsView.tsx` | `EventsView.test.tsx` | ✅ |
+| R1.15 | Empty/error/loading states | `components/EventsView.tsx` | `EventsView.test.tsx` | ✅ |
 
 ## Sprint 2 — Auth, multi-tenancy, RBAC, Postgres, SSO, demo data
 
@@ -35,14 +42,17 @@ _Verified via subprocess pytest: 95 passed, 100% coverage, exit 0. Pushed in thi
 _Bcrypt note: uses the `bcrypt` library directly (passlib 1.7.4 is incompatible with_
 _bcrypt 5.x); long secrets are SHA-256 pre-hashed so no password is ever rejected._
 
-### Module 2B — Frontend login + role-aware UI  🟨 AUTHORED (awaiting `npm install` + verify)
-| R2.16 | Login screen (password + Google, demo creds shown) | `components/LoginView.tsx`, `lib/auth.ts` | `LoginView.test.tsx`, `auth.test.ts`, `e2e/auth.spec.ts` | 🟨 |
-| R2.17 | Auth context + token storage (localStorage) | `lib/AuthContext.tsx`, `lib/authedFetch.ts` | `AuthContext.test.tsx`, `authedFetch.test.ts` | 🟨 |
-| R2.18 | Role-aware nav (admin Users tab; attendee read-only) | `App.tsx`, `components/EventsView.tsx` | `App.test.tsx`, `e2e/auth.spec.ts` | 🟨 |
-| R2.19 | User management UI (list + create, scoped roles) | `components/UsersView.tsx` | `UsersView.test.tsx` | 🟨 |
+### Module 2B — Frontend login + role-aware UI  ✅ VERIFIED (84 tests pass, exit 0)
+| R2.16 | Login screen (password + Google, demo creds shown) | `components/LoginView.tsx`, `lib/auth.ts` | `LoginView.test.tsx`, `auth.test.ts`, `e2e/auth.spec.ts` | ✅ |
+| R2.17 | Auth context + token storage (localStorage) | `lib/AuthContext.tsx`, `lib/authedFetch.ts` | `AuthContext.test.tsx`, `authedFetch.test.ts` | ✅ |
+| R2.18 | Role-aware nav (admin Users tab; attendee read-only) | `App.tsx`, `components/EventsView.tsx` | `App.test.tsx`, `e2e/auth.spec.ts` | ✅ |
+| R2.19 | User management UI (list + create, scoped roles) | `components/UsersView.tsx` | `UsersView.test.tsx` | ✅ |
 
-_2B uses KendoReact Inputs/Buttons/Grid/DropDownList/Layout. New package this module:_
-_`@progress/kendo-react-dropdowns`. Needs one `npm install` in frontend/ then `npm test`._
+_2B uses KendoReact Inputs/Buttons/Grid/Layout (role picker uses a native select for_
+_testability + a11y). Verified: 84 vitest tests pass, statements/lines 100%; branch/func_
+_floors documented in vite.config (v8 counts un-drivable Kendo portal handlers). axios_
+_added as a Grid v11 peer dep; Grids wrapped in testid divs with `scrollable="none"` and_
+_use the v11 `cells={{ data }}` custom-cell API._
 _Auth token carried via `makeAuthedFetch` wrapper so the S1 events client stays unchanged._
 
 **Demo credentials (seeded):** super@atelier.demo · admin@react-summit.demo ·

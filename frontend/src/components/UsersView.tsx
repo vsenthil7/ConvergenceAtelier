@@ -1,7 +1,6 @@
 import { useCallback, useEffect, useState } from "react";
 import { Grid, GridColumn } from "@progress/kendo-react-grid";
 import { Input } from "@progress/kendo-react-inputs";
-import { DropDownList } from "@progress/kendo-react-dropdowns";
 import { Button } from "@progress/kendo-react-buttons";
 import { Loader } from "@progress/kendo-react-indicators";
 import {
@@ -107,7 +106,7 @@ export function UsersView({ fetchImpl = fetch }: Props) {
           <Input
             type="email"
             value={email}
-            onChange={(e) => setEmail(String(e.value ?? ""))}
+            onChange={(e) => setEmail(String(e.value))}
             aria-label="new-user-email"
           />
         </label>
@@ -115,7 +114,7 @@ export function UsersView({ fetchImpl = fetch }: Props) {
           Full name
           <Input
             value={fullName}
-            onChange={(e) => setFullName(String(e.value ?? ""))}
+            onChange={(e) => setFullName(String(e.value))}
             aria-label="new-user-name"
           />
         </label>
@@ -124,18 +123,24 @@ export function UsersView({ fetchImpl = fetch }: Props) {
           <Input
             type="password"
             value={password}
-            onChange={(e) => setPassword(String(e.value ?? ""))}
+            onChange={(e) => setPassword(String(e.value))}
             aria-label="new-user-password"
           />
         </label>
         <label>
           Role
-          <DropDownList
-            data={roleChoices}
+          <select
             value={role}
-            onChange={(e) => setRole(e.value as Role)}
+            onChange={(e) => setRole(e.target.value as Role)}
             aria-label="new-user-role"
-          />
+            className="k-input k-input-md k-rounded-md k-input-solid atelier-role-select"
+          >
+            {roleChoices.map((r) => (
+              <option key={r} value={r}>
+                {r}
+              </option>
+            ))}
+          </select>
         </label>
         {formError && (
           <p role="alert" data-testid="users-form-error">

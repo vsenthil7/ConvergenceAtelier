@@ -59,4 +59,33 @@ describe("EventForm", () => {
     await userEvent.click(screen.getByText("Cancel"));
     expect(onCancel).toHaveBeenCalled();
   });
+
+  it("edits location and description fields (functional)", async () => {
+    const onSubmit = vi.fn();
+    render(<EventForm initial={valid} onSubmit={onSubmit} />);
+    const loc = screen.getByLabelText("event-location");
+    await userEvent.clear(loc);
+    await userEvent.type(loc, "Berlin");
+    const desc = screen.getByLabelText("event-description");
+    await userEvent.clear(desc);
+    await userEvent.type(desc, "Updated");
+    await userEvent.click(screen.getByText("Save"));
+    await waitFor(() =>
+      expect(onSubmit).toHaveBeenCalledWith(
+        expect.objectContaining({ location: "Berlin", description: "Updated" }),
+      ),
+    );
+  });
+
+  it("renders with an unparseable initial date without crashing (asDate null branch)", async () => {
+    const onSubmit = vi.fn();
+    render(
+      <EventForm
+        initial={{ ...valid, starts_at: "not-a-date", ends_at: "" }}
+        onSubmit={onSubmit}
+      />,
+    );
+    // The date pickers handle null gracefully; the form still renders its name field.
+    expect(screen.getByLabelText("event-name")).toBeInTheDocument();
+  });
 });
