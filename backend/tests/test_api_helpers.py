@@ -314,3 +314,35 @@ async def test_registration_routes_called_directly(seeded):
         svc = RegistrationService(s)
         with pytest.raises(ForbiddenError):
             await event_participants(event_id, user=plain, svc=svc)
+
+
+async def test_recordings_route_called_directly(seeded):
+    """Cover the recordings route body + list_recordings service path (S7.2)."""
+    from app.api.events import add_session, event_recordings
+    from app.models.identity import User
+    from app.schemas.event import SessionCreate
+    from app.services.event_service import EventService
+    from tests.conftest import make_event
+    from datetime import datetime, timezone
+
+    maker = seeded["maker"]
+    t1 = seeded["ids"]["t1"]
+    event_id = await make_event(maker, t1, name="Conf")
+    admin = User(id=seeded["ids"]["a1"], email="a1@x.com", role=Role.TENANT_ADMIN, tenant_id=t1)
+
+    async with maker() as s:
+        svc = EventService(s)
+        await add_session(
+            event_id,
+            SessionCreate(
+                title="Recorded",
+                starts_at=datetime(2026, 6, 11, 10, tzinfo=timezone.utc),
+                ends_at=datetime(2026, 6, 11, 11, tzinfo=timezone.utc),
+                recording_url="https://rec.example/z",
+            ),
+            user=admin,
+            svc=svc,
+        )
+        rows = await event_recordings(event_id, user=admin, svc=svc)
+        assert len(rows) == 1
+        assert rows[0].recording_url == "https://rec.example/z"

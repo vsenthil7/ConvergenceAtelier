@@ -121,6 +121,20 @@ async def add_session(
     )
 
 
+@router.get("/{event_id}/recordings", response_model=list[SessionRead])
+async def event_recordings(
+    event_id: str,
+    user: User = Depends(get_current_user),
+    svc: EventService = Depends(_service),
+) -> list[SessionRead]:
+    """On-demand catalog: every session in the event that has a recording (S7.2).
+
+    Readable by any authenticated user in scope (attendee-facing).
+    """
+    rows = await svc.list_recordings(event_id, _read_scope(user))
+    return [SessionRead.model_validate(s) for s in rows]
+
+
 # ---------- registration / participation (S3b) ----------
 
 

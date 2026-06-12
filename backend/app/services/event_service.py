@@ -81,6 +81,10 @@ class EventService:
             title=data.title,
             track=data.track,
             speaker=data.speaker,
+            mode=data.mode,
+            stream_url=data.stream_url,
+            meeting_url=data.meeting_url,
+            recording_url=data.recording_url,
             starts_at=data.starts_at,
             ends_at=data.ends_at,
         )
@@ -88,3 +92,20 @@ class EventService:
         await self.session.commit()
         await self.session.refresh(agenda_item)
         return agenda_item
+
+    async def list_recordings(
+        self, event_id: str, tenant_id: str | None
+    ) -> list[Session]:
+        """Sessions in an event that have a published recording (S7.2).
+
+        The on-demand catalog: any agenda item whose ``recording_url`` is set,
+        ordered chronologically. Raises NotFound if the event is out of scope.
+        """
+        await self.get_event(event_id, tenant_id)  # scope check
+        stmt = (
+            select(Session)
+            .where(Session.event_id == event_id, Session.recording_url != "")
+            .order_by(Session.starts_at)
+        )
+        result = await self.session.execute(stmt)
+        return list(result.scalars().all())

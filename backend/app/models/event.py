@@ -43,6 +43,19 @@ class EventType(str, enum.Enum):
     HYBRID = "hybrid"
 
 
+class SessionMode(str, enum.Enum):
+    """How a session is delivered (S7.2).
+
+    IN_PERSON — on-site only (the default for conferences).
+    ONLINE    — streamed / remote only (webinars, online tracks).
+    HYBRID    — both on-site and streamed.
+    """
+
+    IN_PERSON = "in_person"
+    ONLINE = "online"
+    HYBRID = "hybrid"
+
+
 class Event(TimestampMixin, Base):
     """A conference/event the organiser is running (tenant-scoped)."""
 
@@ -82,6 +95,14 @@ class Session(TimestampMixin, Base):
     title: Mapped[str] = mapped_column(String(200), nullable=False)
     track: Mapped[str] = mapped_column(String(100), default="General", nullable=False)
     speaker: Mapped[str] = mapped_column(String(200), default="", nullable=False)
+    mode: Mapped[SessionMode] = mapped_column(
+        Enum(SessionMode), default=SessionMode.IN_PERSON, nullable=False
+    )
+    # Live stream URL (online/hybrid), interactive meeting link, and the
+    # on-demand recording URL published after the talk. Empty when not set.
+    stream_url: Mapped[str] = mapped_column(String(500), default="", nullable=False)
+    meeting_url: Mapped[str] = mapped_column(String(500), default="", nullable=False)
+    recording_url: Mapped[str] = mapped_column(String(500), default="", nullable=False)
     starts_at: Mapped[datetime] = mapped_column(AwareDateTime, nullable=False)
     ends_at: Mapped[datetime] = mapped_column(AwareDateTime, nullable=False)
 

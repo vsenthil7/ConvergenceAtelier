@@ -12,7 +12,7 @@ from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.security import hash_password
-from app.models.event import Event, Session
+from app.models.event import Event, Session, SessionMode
 from app.models.identity import Role, Tenant, User
 
 DEMO_PASSWORD = "Atelier!2026"  # noqa: S105 — demo-only credential, documented.
@@ -82,22 +82,32 @@ async def seed_demo(session: AsyncSession) -> bool:
 
         # Sessions are scheduled ON the event's opening day (not relative to now),
         # so the Scheduler — which opens on the event start date — shows them.
+        # Mode + media URLs demo the S7.2 online / hybrid / recording features.
         day = event.starts_at
         agenda = [
-            ("Opening Keynote", "Main", "Jane Developer", 1, 2),
-            ("State of the Framework", "Main", "John Maintainer", 2, 3),
-            ("Performance Deep Dive", "Performance", "Ada Speed", 3, 4),
-            ("Testing at Scale", "Quality", "Sam Tester", 4, 5),
-            ("Accessibility Patterns", "Quality", "Lee A11y", 5, 6),
-            ("Closing Panel: The Road Ahead", "Main", "Community Panel", 6, 7),
+            ("Opening Keynote", "Main", "Jane Developer", 1, 2, SessionMode.HYBRID,
+             "https://stream.demo/keynote", "https://rec.demo/keynote"),
+            ("State of the Framework", "Main", "John Maintainer", 2, 3, SessionMode.IN_PERSON,
+             "", "https://rec.demo/state"),
+            ("Performance Deep Dive", "Performance", "Ada Speed", 3, 4, SessionMode.IN_PERSON,
+             "", ""),
+            ("Testing at Scale", "Quality", "Sam Tester", 4, 5, SessionMode.ONLINE,
+             "https://stream.demo/testing", ""),
+            ("Accessibility Patterns", "Quality", "Lee A11y", 5, 6, SessionMode.IN_PERSON,
+             "", "https://rec.demo/a11y"),
+            ("Closing Panel: The Road Ahead", "Main", "Community Panel", 6, 7, SessionMode.HYBRID,
+             "https://stream.demo/panel", ""),
         ]
-        for title, track, speaker, start_h, end_h in agenda:
+        for title, track, speaker, start_h, end_h, mode, stream, rec in agenda:
             session.add(
                 Session(
                     event_id=event.id,
                     title=title,
                     track=track,
                     speaker=speaker,
+                    mode=mode,
+                    stream_url=stream,
+                    recording_url=rec,
                     starts_at=day + timedelta(hours=start_h),
                     ends_at=day + timedelta(hours=end_h),
                 )

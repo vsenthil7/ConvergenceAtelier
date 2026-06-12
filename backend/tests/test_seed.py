@@ -4,7 +4,7 @@ from __future__ import annotations
 from sqlalchemy import func, select
 
 from app.config import Settings
-from app.models.event import Event, Session
+from app.models.event import Event, Session, SessionMode
 from app.models.identity import Role, Tenant, User
 from app.services.seed import seed_demo
 
@@ -54,6 +54,22 @@ async def test_seed_is_idempotent(db):
         assert await seed_demo(s) is True
     async with maker() as s:
         assert await seed_demo(s) is False
+
+
+async def test_seed_includes_modes_and_recordings(db):
+    """Demo agenda exercises S7.2: online/hybrid modes + some recordings."""
+    maker = db
+    async with maker() as s:
+        await seed_demo(s)
+    async with maker() as s:
+        sessions = (await s.execute(select(Session))).scalars().all()
+    modes = {sess.mode for sess in sessions}
+    assert SessionMode.ONLINE in modes
+    assert SessionMode.HYBRID in modes
+    # at least one published recording across the demo set
+    assert any(sess.recording_url for sess in sessions)
+    # at least one live stream URL
+    assert any(sess.stream_url for sess in sessions)
 
 
 def test_google_oauth_enabled_property():

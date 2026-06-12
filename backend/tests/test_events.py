@@ -107,6 +107,97 @@ async def test_create_event_invalid_type_422(make_client, seeded):
         assert resp.status_code == 422
 
 
+# ---------- session mode + recordings (S7.2) ----------
+
+async def test_session_defaults_to_in_person(make_client, seeded):
+    maker, ids = seeded["maker"], seeded["ids"]
+    async with make_client(maker, _admin1(ids)) as c:
+        eid = (await c.post("/api/events", json=event_payload())).json()["id"]
+        s = (await c.post(f"/api/events/{eid}/sessions", json=session_payload())).json()
+    assert s["mode"] == "in_person"
+    assert s["stream_url"] == ""
+    assert s["recording_url"] == ""
+
+
+async def test_create_online_session_with_urls(make_client, seeded):
+    maker, ids = seeded["maker"], seeded["ids"]
+    payload = session_payload(
+        mode="online",
+        stream_url="https://stream.example/live",
+        meeting_url="https://meet.example/room",
+        recording_url="https://rec.example/vod",
+    )
+    async with make_client(maker, _admin1(ids)) as c:
+        eid = (await c.post("/api/events", json=event_payload())).json()["id"]
+        s = (await c.post(f"/api/events/{eid}/sessions", json=payload)).json()
+        assert s["mode"] == "online"
+        assert s["stream_url"] == "https://stream.example/live"
+        assert s["meeting_url"] == "https://meet.example/room"
+        # round-trips on the event read
+        full = (await c.get(f"/api/events/{eid}")).json()
+        assert full["sessions"][0]["recording_url"] == "https://rec.example/vod"
+
+
+async def test_invalid_session_mode_422(make_client, seeded):
+    maker, ids = seeded["maker"], seeded["ids"]
+    async with make_client(maker, _admin1(ids)) as c:
+        eid = (await c.post("/api/events", json=event_payload())).json()["id"]
+        resp = await c.post(f"/api/events/{eid}/sessions", json=session_payload(mode="telepathy"))
+        assert resp.status_code == 422
+
+
+async def test_recordings_catalog_lists_only_recorded(make_client, seeded):
+    maker, ids = seeded["maker"], seeded["ids"]
+    async with make_client(maker, _admin1(ids)) as c:
+        eid = (await c.post("/api/events", json=event_payload())).json()["id"]
+        # one with a recording, one without
+        await c.post(
+            f"/api/events/{eid}/sessions",
+            json=session_payload(title="Recorded", recording_url="https://rec.example/a"),
+        )
+        await c.post(
+            f"/api/events/{eid}/sessions",
+            json=session_payload(
+                title="Live only",
+                starts_at="2026-06-11T12:00:00+00:00",
+                ends_at="2026-06-11T13:00:00+00:00",
+            ),
+        )
+        recordings = (await c.get(f"/api/events/{eid}/recordings")).json()
+    assert len(recordings) == 1
+    assert recordings[0]["title"] == "Recorded"
+    assert recordings[0]["recording_url"] == "https://rec.example/a"
+
+
+async def test_recordings_requires_auth(make_client, seeded):
+    maker, ids = seeded["maker"], seeded["ids"]
+    eid = await make_event(maker, ids["t1"])
+    async with make_client(maker) as c:
+        assert (await c.get(f"/api/events/{eid}/recordings")).status_code == 401
+
+
+async def test_attendee_can_read_recordings(make_client, seeded):
+    """The recordings catalog is attendee-facing (any in-scope role)."""
+    maker, ids = seeded["maker"], seeded["ids"]
+    eid = await make_event(maker, ids["t1"], "WithRec")
+    async with make_client(maker, _admin1(ids)) as c:
+        await c.post(
+            f"/api/events/{eid}/sessions",
+            json=session_payload(recording_url="https://rec.example/x"),
+        )
+    async with make_client(maker, _user1(ids)) as c:
+        resp = await c.get(f"/api/events/{eid}/recordings")
+        assert resp.status_code == 200
+        assert len(resp.json()) == 1
+
+
+async def test_recordings_other_tenant_404(make_client, seeded):
+    maker, ids = seeded["maker"], seeded["ids"]
+    other = await make_event(maker, ids["t2"], "OtherTenant")
+    async with make_client(maker, _admin1(ids)) as c:
+        assert (await c.get(f"/api/events/{other}/recordings")).status_code == 404
+
+
 # ---------- tenant isolation ----------
 
 async def test_tenant_admin_cannot_see_other_tenant_events(make_client, seeded):

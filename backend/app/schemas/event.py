@@ -11,7 +11,7 @@ from typing import Any
 
 from pydantic import BaseModel, ConfigDict, Field, field_validator, model_validator
 
-from app.models.event import EventType
+from app.models.event import EventType, SessionMode
 
 
 def _require_aware(value: datetime, field: str) -> datetime:
@@ -33,6 +33,10 @@ class SessionCreate(BaseModel):
     title: str = Field(min_length=1, max_length=200)
     track: str = Field(default="General", max_length=100)
     speaker: str = Field(default="", max_length=200)
+    mode: SessionMode = SessionMode.IN_PERSON
+    stream_url: str = Field(default="", max_length=500)
+    meeting_url: str = Field(default="", max_length=500)
+    recording_url: str = Field(default="", max_length=500)
     starts_at: datetime
     ends_at: datetime
 
@@ -98,6 +102,10 @@ class SessionRead(BaseModel):
     title: str
     track: str
     speaker: str
+    mode: SessionMode
+    stream_url: str = ""
+    meeting_url: str = ""
+    recording_url: str = ""
     starts_at: datetime
     ends_at: datetime
 
