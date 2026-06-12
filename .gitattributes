@@ -1,0 +1,20 @@
+# Normalize line endings. Text files use LF in the repo; Windows checkouts may
+# render CRLF locally, but anything that runs on Linux MUST stay LF or it breaks
+# (shell scripts get "bad interpreter ^M"). Pin those explicitly.
+* text=auto eol=lf
+
+*.sh        text eol=lf
+entrypoint.sh text eol=lf
+Dockerfile  text eol=lf
+*.yml       text eol=lf
+*.yaml      text eol=lf
+*.py        text eol=lf
+*.mako      text eol=lf
+*.ini       text eol=lf
+
+# Binary assets — never touch.
+*.png       binary
+*.jpg       binary
+*.ico       binary
+*.woff      binary
+*.woff2     binary
