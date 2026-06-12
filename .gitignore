@@ -38,6 +38,10 @@ coverage.xml
 .ruff_cache/
 *.egg-info/
 
+# Local SQLite databases (demo/dev + Alembic scratch)
+*.db
+_alembic_*.db
+
 # OS / editor
 .DS_Store
 Thumbs.db

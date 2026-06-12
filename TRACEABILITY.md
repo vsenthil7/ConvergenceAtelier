@@ -36,7 +36,7 @@ backend 8/8 · frontend 7/7 · e2e 8/8 · build OK · `c214b2c`.
 | R2.12 | Conflict/401/403 handlers | `api/errors.py` | `test_auth.py`, `test_events.py` | ✅ |
 | R2.13 | Demo seeder (idempotent) | `services/seed.py` | `test_seed.py` | ✅ |
 | R2.14 | DB-aware readiness `/api/ready` | `api/health.py` | `test_health.py` | ✅ |
-| R2.15 | Postgres persistence (prod) | `db/session.py`, compose | deploy smoke | ⬜ |
+| R2.15 | Postgres persistence (prod) + Alembic migrations | `db/session.py`, `migrations/`, `docker-compose.yml`, `deploy/entrypoint.sh` | `alembic upgrade/downgrade` verified locally; Vultr deploy smoke ⬜ | 🟨 |
 
 _Verified via subprocess pytest: 95 passed, 100% coverage, exit 0. Pushed in this cycle._
 _Bcrypt note: uses the `bcrypt` library directly (passlib 1.7.4 is incompatible with_

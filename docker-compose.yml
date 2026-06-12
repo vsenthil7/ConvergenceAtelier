@@ -1,4 +1,21 @@
 services:
+  db:
+    image: postgres:16-alpine
+    environment:
+      - POSTGRES_USER=${POSTGRES_USER:-atelier}
+      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD:-atelier}
+      - POSTGRES_DB=${POSTGRES_DB:-atelier}
+    volumes:
+      - atelier_pgdata:/var/lib/postgresql/data
+    ports:
+      - "5434:5432"
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-atelier} -d ${POSTGRES_DB:-atelier}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
   app:
     build:
       context: .
@@ -6,7 +23,18 @@ services:
         TELERIK_LICENSE: ${TELERIK_LICENSE:-}
     image: convergence-atelier:latest
     environment:
-      - USE_MOCKS=true
+      - USE_MOCKS=${USE_MOCKS:-true}
+      # When DATABASE_URL is set the app uses Postgres; otherwise it falls back to
+      # the bundled SQLite file (demo mode). Compose points it at the db service.
+      - DATABASE_URL=${DATABASE_URL:-postgresql+asyncpg://atelier:atelier@db:5432/atelier}
+      - SEED_DEMO_DATA=${SEED_DEMO_DATA:-true}
+      - JWT_SECRET=${JWT_SECRET:-dev-insecure-change-me-0123456789abcdef}
+      - GOOGLE_CLIENT_ID=${GOOGLE_CLIENT_ID:-}
+      - GOOGLE_CLIENT_SECRET=${GOOGLE_CLIENT_SECRET:-}
+      - CORS_ORIGINS=${CORS_ORIGINS:-http://localhost:5173,http://localhost:8095}
+    depends_on:
+      db:
+        condition: service_healthy
     ports:
       - "80:80"
     restart: unless-stopped
@@ -15,3 +43,6 @@ services:
       interval: 15s
       timeout: 5s
       retries: 5
+
+volumes:
+  atelier_pgdata:

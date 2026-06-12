@@ -5,7 +5,7 @@ Reserved host port **8095** — clear of every other project on the box.
 
 ## Occupied ports on the VPS (do not reuse)
 8080–8094, 5432–5433, 6379, 6006, 9000–9001, 7880–7882.
-Convergence Atelier uses **8095** (and reserves **5434** for Postgres in a later sprint).
+Convergence Atelier uses **8095** (app) and **5434** (Postgres).
 
 ## First deploy
 
@@ -30,12 +30,33 @@ docker compose up -d --build
 ```bash
 curl -s -o /dev/null -w "app: %{http_code}\n"    http://localhost:8095/
 curl -s http://localhost:8095/api/health; echo
+curl -s http://localhost:8095/api/ready; echo   # DB-aware readiness
 docker compose ps
 ```
 
-Expected: app `200`, health JSON `{"status":"ok",...}`.
+Expected: app `200`, health JSON `{"status":"ok",...}`, ready JSON reporting the
+database reachable. With the override above the app runs against Postgres on 5434
+(`USE_MOCKS=false`); without it, the app falls back to the bundled SQLite demo.
 
 Public URL once up: `http://45.77.52.54:8095/`
+
+## Database & migrations
+- Production persists to **Postgres** (the `db` service, host port 5434). The app
+  reads `DATABASE_URL`; set it to `postgresql+asyncpg://atelier:atelier@db:5432/atelier`
+  (the override does this). Change the credentials via `POSTGRES_USER/PASSWORD/DB`.
+- **Alembic** migrations live in `backend/migrations/`. The container entrypoint
+  runs `alembic upgrade head` automatically on boot whenever `DATABASE_URL` is
+  Postgres, so a fresh box self-migrates.
+- To run migrations manually inside the running container:
+  ```bash
+  docker compose exec app sh -c "cd /app/backend && python -m alembic upgrade head"
+  ```
+- To autogenerate a new migration after model changes (local dev):
+  ```bash
+  cd backend && python -m alembic revision --autogenerate -m "describe change"
+  ```
+- Demo mode (`USE_MOCKS=true`, no `DATABASE_URL`) uses SQLite and `create_all` on
+  startup, so it needs no migration step to run.
 
 ## Update an existing deploy
 

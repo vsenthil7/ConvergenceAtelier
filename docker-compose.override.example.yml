@@ -1,8 +1,18 @@
-# VPS override: remap the single app port off 80 onto the reserved 8095,
-# clear of all other projects on the box (8080-8094, 5432-5433, 6379, 6006,
-# 9000-9001, 7880-7882). Backend stays internal; DB port 5434 is reserved for
-# when Postgres is added in a later sprint.
+# VPS override: remap container ports off the defaults onto the project's
+# reserved host ports, clear of all other projects on the box (8080-8094,
+# 5432-5433, 6379, 6006, 9000-9001, 7880-7882).
+#   app : host 8095 -> container 80
+#   db  : host 5434 -> container 5432  (Postgres)
+# The compose default already maps db to 5434; this !override block keeps the
+# app port explicit and pins the DB env so the app talks to the bundled Postgres.
 services:
   app:
     ports: !override
       - "8095:80"
+    environment:
+      - USE_MOCKS=false
+      - DATABASE_URL=postgresql+asyncpg://atelier:atelier@db:5432/atelier
+      - SEED_DEMO_DATA=true
+  db:
+    ports: !override
+      - "5434:5432"

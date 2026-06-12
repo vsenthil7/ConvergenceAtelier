@@ -50,7 +50,7 @@ Module 2A backend ✅ · Module 2B frontend ✅ · Postgres (R2.15) ⬜ remainin
 - [x] Demo seeder (2 tenants, 5 users), DB-aware `/api/ready`
 - [x] Backend **95 tests, 100% cov, `e978fbc`**
 - [x] Frontend login + AuthContext + role-aware nav + Users UI (**84 tests, exit 0**)
-- [ ] Postgres persistence: compose service on 5434 + Alembic migrations + Vultr deploy smoke
+- [~] Postgres persistence: compose on 5434 + Alembic migrations ✅ (upgrade/downgrade verified) · Vultr deploy smoke ⬜
 
 ## S2b — Speakers, sessions, sponsors, multi-track  ⬜
 - [ ] Speaker/session/sponsor models + CRUD
