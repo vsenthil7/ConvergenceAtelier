@@ -128,7 +128,13 @@ not duplication).
 
 ### Sprint breakdown (each lands GREEN independently, git-first, 100% cov)
 - [x] **S7.1 Event type + config**: `event_type` enum + JSON `config` on Event; type-aware create/edit; migration; type badge on Events grid. Backend ✅ (160 tests, 100% cov) + frontend ✅ (127 tests, 100% lines, prod tsc clean).
-- [ ] **S7.2 Session mode + recordings**: `mode` + `stream_url` + `recording_url` on Session; agenda shows online/in-person/▶ recording; "Recordings" catalog view. 100%.
+- [🟨] **S7.2 Session mode + recordings** (IN PROGRESS): per-session `mode` (in_person/online/hybrid) + `stream_url` + `recording_url` + `meeting_url`; type-aware session schema/API; agenda shows online/in-person/▶ recording indicators; a "Recordings" catalog listing every session with a recording. Backend + frontend 100%. Delivers the live-program / webinar-video / record-that capability.
+  - R7.2.1 Session model: `mode` enum + `stream_url`/`recording_url`/`meeting_url` columns + migration
+  - R7.2.2 Session create/read schema carries mode + URLs (validated, optional)
+  - R7.2.3 Recordings query: list sessions across an event that have a recording_url
+  - R7.2.4 Frontend session client types + a recordings client call
+  - R7.2.5 Agenda shows a mode chip (online/in-person/hybrid) + ▶ recording link per talk
+  - R7.2.6 "Recordings" catalog panel on the event page (on-demand library)
 - [ ] **S7.3 Hackathon module**: Team + Submission models (repo/demo/description links), submission tracking states, judging rubric + scores, live leaderboard (Kendo Grid/Charts). 100%.
 - [ ] **S7.4 Webinar module**: stream URL + provider, registration cap + waitlist (reuses S3b registration), recording link, reminder schedule. 100%.
 - [ ] **S7.5 Linked / hybrid events**: event-to-event links + cross-event session catalog; discovery spans linked events. 100%.

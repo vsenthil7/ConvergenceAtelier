@@ -86,7 +86,13 @@ Each row lands GREEN independently with 100% coverage, git-first.
 | ID | Requirement | Status |
 |----|-------------|--------|
 | R7.1 | `event_type` enum + JSON `config` on Event; type-aware create/edit + grid badge + migration | ✅ |
-| R7.2 | Session `mode` (in_person/online/hybrid) + `stream_url` + `recording_url`; recordings catalog | ⬜ |
+| R7.2 | Session `mode` (in_person/online/hybrid) + `stream_url`/`recording_url`/`meeting_url`; recordings catalog | 🟨 |
+| R7.2.1 | Session model: mode enum + URL columns + migration | ⬜ |
+| R7.2.2 | Session schema carries mode + URLs (optional, validated) | ⬜ |
+| R7.2.3 | Recordings query (sessions with a recording_url) + endpoint | ⬜ |
+| R7.2.4 | Frontend session/recordings client types + calls | ⬜ |
+| R7.2.5 | Agenda mode chip + ▶ recording link per talk | ⬜ |
+| R7.2.6 | "Recordings" catalog panel on the event page | ⬜ |
 | R7.3 | Hackathon module: Team + Submission (repo/demo links) + judging rubric + leaderboard | ⬜ |
 | R7.4 | Webinar module: stream provider + registration cap/waitlist + recording + reminders | ⬜ |
 | R7.5 | Linked/hybrid events: event-to-event links + cross-event session catalog | ⬜ |
