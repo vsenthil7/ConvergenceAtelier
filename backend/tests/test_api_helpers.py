@@ -256,3 +256,61 @@ def test_ai_live_enabled_property():
     # key present and mocks off -> enabled
     live = Settings(ai_api_key="sk-test", use_mocks=False)
     assert live.ai_live_enabled is True
+
+
+async def test_register_route_called_directly(seeded):
+    """Cover the public-register route body + register_public service path."""
+    from app.api.auth import register
+    from app.schemas.auth import PublicRegister
+    from app.services.auth_service import AuthService
+
+    maker = seeded["maker"]
+    async with maker() as s:
+        svc = AuthService(s)
+        token = await register(
+            PublicRegister(
+                email="direct@x.com",
+                full_name="Direct",
+                password="Secret123!",
+                tenant_slug="react-org",
+            ),
+            svc=svc,
+        )
+    assert token.access_token
+
+
+async def test_registration_routes_called_directly(seeded):
+    """Cover the four registration route handler bodies deterministically."""
+    from app.api.events import (
+        cancel_registration,
+        event_participants,
+        my_registration,
+        register_for_event,
+    )
+    from app.models.identity import User
+    from app.services.registration_service import RegistrationService
+    from tests.conftest import make_event
+
+    maker = seeded["maker"]
+    t1 = seeded["ids"]["t1"]
+    event_id = await make_event(maker, t1, name="Conf")
+    attendee = User(id=seeded["ids"]["u1"], email="u1@x.com", role=Role.USER, tenant_id=t1)
+    admin = User(id=seeded["ids"]["a1"], email="a1@x.com", role=Role.TENANT_ADMIN, tenant_id=t1)
+    plain = User(id=seeded["ids"]["u1"], email="u1@x.com", role=Role.USER, tenant_id=t1)
+
+    async with maker() as s:
+        svc = RegistrationService(s)
+        reg = await register_for_event(event_id, user=attendee, svc=svc)
+        assert reg.status.value == "registered"
+        status = await my_registration(event_id, user=attendee, svc=svc)
+        assert status.status is not None
+        roster = await event_participants(event_id, user=admin, svc=svc)
+        assert len(roster) == 1
+        cancelled = await cancel_registration(event_id, user=attendee, svc=svc)
+        assert cancelled.status.value == "cancelled"
+
+    # RBAC: a plain USER cannot read the roster.
+    async with maker() as s:
+        svc = RegistrationService(s)
+        with pytest.raises(ForbiddenError):
+            await event_participants(event_id, user=plain, svc=svc)

@@ -31,6 +31,16 @@ class UserCreate(BaseModel):
     tenant_id: str | None = None
 
 
+class PublicRegister(BaseModel):
+    """Self-service signup. Always provisions a plain USER in a chosen tenant;
+    the role is fixed server-side so a caller can never self-grant admin."""
+
+    email: EmailStr
+    full_name: str = Field(default="", max_length=200)
+    password: str = Field(min_length=8, max_length=200)
+    tenant_slug: str = Field(min_length=1, max_length=120, pattern=r"^[a-z0-9-]+$")
+
+
 class UserRead(BaseModel):
     model_config = ConfigDict(from_attributes=True)
     id: str

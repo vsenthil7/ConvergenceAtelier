@@ -8,9 +8,14 @@ from sqlalchemy.ext.asyncio import async_sessionmaker, create_async_engine
 
 from app.db.base import Base
 from app.models.identity import Role, User
-from app.schemas.auth import TenantCreate, UserCreate
+from app.schemas.auth import PublicRegister, TenantCreate, UserCreate
 from app.services.auth_service import AuthService
-from app.services.errors import ConflictError, ForbiddenError, UnauthorizedError
+from app.services.errors import (
+    ConflictError,
+    ForbiddenError,
+    NotFoundError,
+    UnauthorizedError,
+)
 
 
 @pytest.fixture
@@ -130,3 +135,36 @@ async def test_login_google_not_configured_and_provision(session):
     svc3 = AuthService(session, google_verifier=good)
     assert await svc3.login_google("tok")
     assert await svc3.login_google("tok")
+
+
+async def test_register_public_success_forces_user_role(session):
+    svc = AuthService(session)
+    t = await svc.register_tenant(TenantCreate(name="Org", slug="org"))
+    token = await svc.register_public(
+        PublicRegister(
+            email="selfsignup@x.com",
+            full_name="Self Signup",
+            password="password1",
+            tenant_slug="org",
+        )
+    )
+    assert token
+    # The created user is a plain USER in that tenant (never an admin).
+    from sqlalchemy import select
+
+    created = (
+        await session.execute(select(User).where(User.email == "selfsignup@x.com"))
+    ).scalar_one()
+    assert created.role is Role.USER
+    assert created.tenant_id == t.id
+    assert created.last_login_at is not None
+
+
+async def test_register_public_unknown_tenant_raises(session):
+    svc = AuthService(session)
+    with pytest.raises(NotFoundError):
+        await svc.register_public(
+            PublicRegister(
+                email="x@x.com", password="password1", tenant_slug="missing"
+            )
+        )

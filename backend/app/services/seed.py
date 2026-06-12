@@ -80,26 +80,28 @@ async def seed_demo(session: AsyncSession) -> bool:
         session.add(event)
         await session.flush()
 
-        session.add(
-            Session(
-                event_id=event.id,
-                title="Opening Keynote",
-                track="Main",
-                speaker="Jane Developer",
-                starts_at=now + timedelta(days=30, hours=1),
-                ends_at=now + timedelta(days=30, hours=2),
+        # Sessions are scheduled ON the event's opening day (not relative to now),
+        # so the Scheduler — which opens on the event start date — shows them.
+        day = event.starts_at
+        agenda = [
+            ("Opening Keynote", "Main", "Jane Developer", 1, 2),
+            ("State of the Framework", "Main", "John Maintainer", 2, 3),
+            ("Performance Deep Dive", "Performance", "Ada Speed", 3, 4),
+            ("Testing at Scale", "Quality", "Sam Tester", 4, 5),
+            ("Accessibility Patterns", "Quality", "Lee A11y", 5, 6),
+            ("Closing Panel: The Road Ahead", "Main", "Community Panel", 6, 7),
+        ]
+        for title, track, speaker, start_h, end_h in agenda:
+            session.add(
+                Session(
+                    event_id=event.id,
+                    title=title,
+                    track=track,
+                    speaker=speaker,
+                    starts_at=day + timedelta(hours=start_h),
+                    ends_at=day + timedelta(hours=end_h),
+                )
             )
-        )
-        session.add(
-            Session(
-                event_id=event.id,
-                title="State of the Framework",
-                track="Main",
-                speaker="John Maintainer",
-                starts_at=now + timedelta(days=30, hours=3),
-                ends_at=now + timedelta(days=30, hours=4),
-            )
-        )
 
     await session.commit()
     return True

@@ -11,6 +11,7 @@ from app.models.identity import Role, User
 from app.schemas.auth import (
     GoogleLoginRequest,
     LoginRequest,
+    PublicRegister,
     TenantCreate,
     TenantRead,
     TokenResponse,
@@ -37,6 +38,15 @@ async def login_google(
     payload: GoogleLoginRequest, svc: AuthService = Depends(_service)
 ) -> TokenResponse:
     token = await svc.login_google(payload.id_token)
+    return TokenResponse(access_token=token)
+
+
+@router.post("/register", response_model=TokenResponse, status_code=status.HTTP_201_CREATED)
+async def register(
+    payload: PublicRegister, svc: AuthService = Depends(_service)
+) -> TokenResponse:
+    """Public self-service signup. Always creates a plain attendee (USER)."""
+    token = await svc.register_public(payload)
     return TokenResponse(access_token=token)
 
 

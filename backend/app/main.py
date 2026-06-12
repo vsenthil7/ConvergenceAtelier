@@ -19,6 +19,8 @@ from app.api.discovery import router as discovery_router
 from app.api.health import router as health_router
 from app.config import settings
 from app.db.session import SessionLocal, init_models
+# Import models so create_all (demo mode) registers every table.
+from app.models import registration as _registration  # noqa: F401
 from app.services.errors import (
     ConflictError,
     ForbiddenError,

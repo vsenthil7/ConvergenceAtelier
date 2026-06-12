@@ -13,10 +13,11 @@ from app.core.security import (
     verify_password,
 )
 from app.models.identity import Role, Tenant, User
-from app.schemas.auth import TenantCreate, UserCreate
+from app.schemas.auth import PublicRegister, TenantCreate, UserCreate
 from app.services.errors import (
     ConflictError,
     ForbiddenError,
+    NotFoundError,
     UnauthorizedError,
 )
 
@@ -71,6 +72,29 @@ class AuthService:
         await self.session.commit()
         await self.session.refresh(user)
         return user
+
+    async def register_public(self, data: PublicRegister) -> str:
+        """Self-service signup: provision a plain USER in the named tenant and
+        return a login token. Role is forced to USER (no privilege self-grant).
+        """
+        tenant_result = await self.session.execute(
+            select(Tenant).where(Tenant.slug == data.tenant_slug)
+        )
+        tenant = tenant_result.scalar_one_or_none()
+        if tenant is None:
+            raise NotFoundError("Tenant", data.tenant_slug)
+        user = await self.create_user(
+            UserCreate(
+                email=data.email,
+                full_name=data.full_name,
+                password=data.password,
+                role=Role.USER,
+                tenant_id=tenant.id,
+            )
+        )
+        user.last_login_at = datetime.now(timezone.utc)
+        await self.session.commit()
+        return self._token_for(user)
 
     # ---------- login ----------
 

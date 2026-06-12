@@ -18,14 +18,24 @@ from app.schemas.event import (
     SessionCreate,
     SessionRead,
 )
+from app.schemas.registration import (
+    MyRegistrationStatus,
+    ParticipantRead,
+    RegistrationRead,
+)
 from app.services.errors import ForbiddenError
 from app.services.event_service import EventService
+from app.services.registration_service import RegistrationService
 
 router = APIRouter(prefix="/api/events", tags=["events"])
 
 
 def _service(session: AsyncSession = Depends(get_session)) -> EventService:
     return EventService(session)
+
+
+def _reg_service(session: AsyncSession = Depends(get_session)) -> RegistrationService:
+    return RegistrationService(session)
 
 
 def _read_scope(user: User) -> str | None:
@@ -109,3 +119,63 @@ async def add_session(
     return SessionRead.model_validate(
         await svc.add_session(event_id, _read_scope(user), payload)
     )
+
+
+# ---------- registration / participation (S3b) ----------
+
+
+@router.post(
+    "/{event_id}/register",
+    response_model=RegistrationRead,
+    status_code=status.HTTP_201_CREATED,
+)
+async def register_for_event(
+    event_id: str,
+    user: User = Depends(get_current_user),
+    svc: RegistrationService = Depends(_reg_service),
+) -> RegistrationRead:
+    """Any authenticated user registers themselves for an in-scope event."""
+    reg = await svc.register(event_id, user, _read_scope(user))
+    return RegistrationRead.model_validate(reg)
+
+
+@router.delete("/{event_id}/register", response_model=RegistrationRead)
+async def cancel_registration(
+    event_id: str,
+    user: User = Depends(get_current_user),
+    svc: RegistrationService = Depends(_reg_service),
+) -> RegistrationRead:
+    reg = await svc.cancel(event_id, user, _read_scope(user))
+    return RegistrationRead.model_validate(reg)
+
+
+@router.get("/{event_id}/registration", response_model=MyRegistrationStatus)
+async def my_registration(
+    event_id: str,
+    user: User = Depends(get_current_user),
+    svc: RegistrationService = Depends(_reg_service),
+) -> MyRegistrationStatus:
+    """The caller's own registration status for an event."""
+    status_value = await svc.my_status(event_id, user, _read_scope(user))
+    return MyRegistrationStatus(event_id=event_id, status=status_value)
+
+
+@router.get("/{event_id}/participants", response_model=list[ParticipantRead])
+async def event_participants(
+    event_id: str,
+    user: User = Depends(get_current_user),
+    svc: RegistrationService = Depends(_reg_service),
+) -> list[ParticipantRead]:
+    """Roster of registered attendees (admins only)."""
+    if user.role is Role.USER:
+        raise ForbiddenError("Only admins can view the participant roster")
+    rows = await svc.participants(event_id, _read_scope(user))
+    return [
+        ParticipantRead(
+            user_id=p.user_id,
+            email=p.email,
+            full_name=p.full_name,
+            status=p.status,
+        )
+        for p in rows
+    ]
