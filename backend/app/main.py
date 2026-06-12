@@ -17,6 +17,7 @@ from app.api.errors import (
 from app.api.events import router as events_router
 from app.api.discovery import router as discovery_router
 from app.api.hackathon import router as hackathon_router
+from app.api.webinar import router as webinar_router
 from app.api.health import router as health_router
 from app.config import settings
 from app.db.session import SessionLocal, init_models
@@ -62,6 +63,7 @@ def create_app() -> FastAPI:
     app.include_router(events_router)
     app.include_router(discovery_router)
     app.include_router(hackathon_router)
+    app.include_router(webinar_router)
     return app
 
 

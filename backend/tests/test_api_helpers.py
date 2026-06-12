@@ -413,3 +413,55 @@ async def test_hackathon_routes_called_directly(seeded):
             await record_score(
                 eid, sub_id, ScoreCreate(criterion="impact", value=5), user=plain, svc=svc
             )
+
+
+async def test_webinar_routes_called_directly(seeded):
+    """Cover every webinar route handler body deterministically (S7.4)."""
+    from datetime import datetime, timezone
+
+    from app.api.webinar import (
+        webinar_cancel,
+        webinar_register,
+        webinar_reminders,
+        webinar_status,
+        webinar_waitlist,
+    )
+    from app.models.event import Event, EventType
+    from app.models.identity import User
+    from app.services.webinar_service import WebinarService
+
+    maker = seeded["maker"]
+    t1 = seeded["ids"]["t1"]
+    async with maker() as s:
+        e = Event(
+            tenant_id=t1, name="W", event_type=EventType.WEBINAR,
+            config={"capacity": 1, "reminders": ["1h"], "stream_url": "https://s/x"},
+            starts_at=datetime(2026, 7, 1, 17, tzinfo=timezone.utc),
+            ends_at=datetime(2026, 7, 1, 18, tzinfo=timezone.utc),
+        )
+        s.add(e)
+        await s.commit()
+        await s.refresh(e)
+        eid = e.id
+
+    attendee = User(id=seeded["ids"]["u1"], email="u1@x.com", role=Role.USER, tenant_id=t1)
+    admin = User(id=seeded["ids"]["a1"], email="a1@x.com", role=Role.TENANT_ADMIN, tenant_id=t1)
+
+    async with maker() as s:
+        svc = WebinarService(s)
+        reg = await webinar_register(eid, user=attendee, svc=svc)
+        assert reg.status.value == "registered"
+        st = await webinar_status(eid, user=attendee, svc=svc)
+        assert st.registered_count == 1
+        rem = await webinar_reminders(eid, user=attendee, svc=svc)
+        assert rem and rem[0].offset == "1h"
+        wl = await webinar_waitlist(eid, user=admin, svc=svc)
+        assert wl == []
+        cancelled = await webinar_cancel(eid, user=attendee, svc=svc)
+        assert cancelled.status.value == "cancelled"
+
+    # RBAC: a plain USER cannot read the waitlist.
+    async with maker() as s:
+        svc = WebinarService(s)
+        with pytest.raises(ForbiddenError):
+            await webinar_waitlist(eid, user=attendee, svc=svc)

@@ -25,6 +25,9 @@ def _uuid() -> str:
 class RegistrationStatus(str, enum.Enum):
     REGISTERED = "registered"
     CANCELLED = "cancelled"
+    # Webinar capacity overflow (S7.4): seat filled → placed on the waitlist,
+    # auto-promoted to REGISTERED when a seat frees up.
+    WAITLISTED = "waitlisted"
 
 
 class EventRegistration(TimestampMixin, Base):

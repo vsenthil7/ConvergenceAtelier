@@ -7,6 +7,7 @@ from app.config import Settings
 from app.models.event import Event, EventType, Session, SessionMode
 from app.models.hackathon import Submission, Team
 from app.models.identity import Role, Tenant, User
+from app.models.registration import EventRegistration, RegistrationStatus
 from app.services.seed import seed_demo
 
 
@@ -24,9 +25,9 @@ async def test_seed_creates_demo_data(db):
             select(func.count()).select_from(User).where(User.role == Role.SUPER_ADMIN)
         )
     assert tenants == 2
-    assert users == 5  # 1 super + 2 tenant-admins + 2 users
-    assert events == 3  # 2 conferences + 1 hackathon
-    assert sessions == 12  # 6 multi-track sessions per conference (hackathon has none)
+    assert users == 8  # 1 super + 2 tenant-admins + 2 users + 3 webinar guests
+    assert events == 4  # 2 conferences + 1 hackathon + 1 webinar
+    assert sessions == 12  # 6 multi-track sessions per conference (typed events have none)
     assert supers == 1
 
 
@@ -71,6 +72,30 @@ async def test_seed_includes_demo_hackathon(db):
     assert hack.config.get("max_team_size") == 5
     assert {t.name for t in teams} == {"Falcons", "Eagles"}
     assert len(subs) == 2
+
+
+async def test_seed_includes_demo_webinar(db):
+    """S7.4: the seed adds one webinar-typed event with capacity + a waitlisted guest."""
+    maker = db
+    async with maker() as s:
+        await seed_demo(s)
+    async with maker() as s:
+        webinar = (
+            await s.execute(
+                select(Event).where(Event.event_type == EventType.WEBINAR)
+            )
+        ).scalar_one()
+        regs = (
+            await s.execute(
+                select(EventRegistration).where(
+                    EventRegistration.event_id == webinar.id
+                )
+            )
+        ).scalars().all()
+    assert webinar.config.get("capacity") == 2
+    assert webinar.config.get("reminders") == ["24h", "1h"]
+    statuses = sorted(r.status.value for r in regs)
+    assert statuses == ["registered", "registered", "waitlisted"]
 
 
 async def test_seed_is_idempotent(db):

@@ -15,6 +15,7 @@ from app.core.security import hash_password
 from app.models.event import Event, EventType, Session, SessionMode
 from app.models.hackathon import Score, Submission, SubmissionStatus, Team, TeamMember
 from app.models.identity import Role, Tenant, User
+from app.models.registration import EventRegistration, RegistrationStatus
 
 DEMO_PASSWORD = "Atelier!2026"  # noqa: S105 — demo-only credential, documented.
 
@@ -40,9 +41,11 @@ async def seed_demo(session: AsyncSession) -> bool:
     )
     session.add(super_admin)
 
-    # Remember the first tenant + its attendee so we can attach a demo hackathon.
+    # Remember the first tenant + its attendee so we can attach a demo hackathon,
+    # and collect (tenant_id, attendee_id) per tenant for the demo webinar.
     first_tenant_id: str | None = None
     first_user_id: str | None = None
+    tenant_attendees: list[tuple[str, str]] = []
 
     specs = [
         ("React Summit Org", "react-summit", "Amsterdam"),
@@ -77,6 +80,7 @@ async def seed_demo(session: AsyncSession) -> bool:
         await session.flush()
         if first_user_id is None:
             first_user_id = attendee.id
+        tenant_attendees.append((tenant.id, attendee.id))
 
         event = Event(
             tenant_id=tenant.id,
@@ -126,6 +130,10 @@ async def seed_demo(session: AsyncSession) -> bool:
     # --- demo hackathon (S7.3): a typed event with teams, submissions, scores ---
     if first_tenant_id is not None and first_user_id is not None:
         await _seed_hackathon(session, first_tenant_id, first_user_id, super_admin, now)
+
+    # --- demo webinar (S7.4): capacity 2 + waitlist, reminders, a stream URL ---
+    if len(tenant_attendees) >= 2:
+        await _seed_webinar(session, tenant_attendees[1][0], now)
 
     await session.commit()
     return True
@@ -188,3 +196,56 @@ async def _seed_hackathon(
             Score(submission_id=nimbus.id, judge_id=judge.id, criterion="tech", value=8.0),
         ]
     )
+
+
+async def _seed_webinar(session: AsyncSession, tenant_id: str, now: datetime) -> None:
+    """Seed one webinar event with a small capacity so the waitlist is exercised.
+
+    Capacity is 2; three attendees register, so the third lands on the waitlist.
+    The attendees are local demo users created just for this webinar.
+    """
+    pw = hash_password(DEMO_PASSWORD)
+    webinar = Event(
+        tenant_id=tenant_id,
+        name="Scaling Vue in Production (Webinar)",
+        location="Online",
+        description="A live webinar on production Vue patterns.",
+        event_type=EventType.WEBINAR,
+        config={
+            "capacity": 2,
+            "reminders": ["24h", "1h"],
+            "stream_url": "https://stream.demo/vue-webinar",
+        },
+        starts_at=now + timedelta(days=10),
+        ends_at=now + timedelta(days=10, hours=1),
+    )
+    session.add(webinar)
+    await session.flush()
+
+    # Three registrants; capacity 2 means the third is waitlisted. Stagger the
+    # created_at so waitlist ordering is deterministic.
+    statuses = [
+        RegistrationStatus.REGISTERED,
+        RegistrationStatus.REGISTERED,
+        RegistrationStatus.WAITLISTED,
+    ]
+    for i, st in enumerate(statuses):
+        u = User(
+            email=f"webinar{i}@vue-conf.demo",
+            full_name=f"Webinar Guest {i}",
+            password_hash=pw,
+            role=Role.USER,
+            tenant_id=tenant_id,
+            auth_provider="local",
+        )
+        session.add(u)
+        await session.flush()
+        session.add(
+            EventRegistration(
+                event_id=webinar.id,
+                user_id=u.id,
+                status=st,
+                created_at=now + timedelta(minutes=i),
+                updated_at=now + timedelta(minutes=i),
+            )
+        )
