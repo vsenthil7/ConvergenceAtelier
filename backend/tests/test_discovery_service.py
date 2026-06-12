@@ -4,6 +4,7 @@ from __future__ import annotations
 import pytest
 
 from app.services.discovery_service import (
+    AgendaSlot,
     AttendeeProfile,
     DiscoveryService,
 )
@@ -135,3 +136,45 @@ async def test_injected_embedder_is_used(seeded):
         recs = await svc.recommend_for_interests("frontend", t1, limit=3)
     assert calls, "the injected embedder should have been called"
     assert len(recs) == 3
+
+
+async def test_draft_agenda_orders_by_theme_and_track(seeded):
+    """Most on-theme track opens; talks ordered by relevance within a track."""
+    maker, t1 = seeded["maker"], seeded["ids"]["t1"]
+    event_id = await make_event(maker, t1, name="DevConf")
+    await make_session(maker, event_id, title="React hooks performance", track="Frontend", speaker="Ada")
+    await make_session(maker, event_id, title="React state patterns", track="Frontend", speaker="Lin")
+    await make_session(maker, event_id, title="Sourdough bread baking", track="Lifestyle", speaker="Sam")
+    async with maker() as s:
+        svc = DiscoveryService(s)
+        slots = await svc.draft_agenda(event_id, "react frontend performance", t1)
+    # Every session placed exactly once, contiguous order indices.
+    assert [slot.order for slot in slots] == list(range(len(slots)))
+    assert len(slots) == 3
+    # The Frontend track (on-theme) should come before Lifestyle.
+    first_track = slots[0].track
+    assert first_track == "Frontend"
+    # All Frontend slots precede the Lifestyle slot.
+    tracks_in_order = [slot.track for slot in slots]
+    assert tracks_in_order == ["Frontend", "Frontend", "Lifestyle"]
+    # Relevance is a valid 0..1 score.
+    assert all(0.0 <= slot.relevance <= 1.0 for slot in slots)
+    assert isinstance(slots[0], AgendaSlot)
+
+
+async def test_draft_agenda_empty_event(seeded):
+    """An event with no sessions yields an empty draft (no crash)."""
+    maker, t1 = seeded["maker"], seeded["ids"]["t1"]
+    event_id = await make_event(maker, t1, name="EmptyConf")
+    async with maker() as s:
+        svc = DiscoveryService(s)
+        slots = await svc.draft_agenda(event_id, "anything", t1)
+    assert slots == []
+
+
+async def test_draft_agenda_unknown_event_raises(seeded):
+    maker, t1 = seeded["maker"], seeded["ids"]["t1"]
+    async with maker() as s:
+        svc = DiscoveryService(s)
+        with pytest.raises(NotFoundError):
+            await svc.draft_agenda("missing", "theme", t1)

@@ -13,6 +13,8 @@ from app.core.deps import get_current_user
 from app.db.session import get_session
 from app.models.identity import Role, User
 from app.schemas.discovery import (
+    AgendaDraftRequest,
+    AgendaSlotRead,
     AttendeeMatchRead,
     AttendeeRef,
     InterestQuery,
@@ -81,4 +83,23 @@ async def match_attendees(
             b=AttendeeRef(id=m.b.id, name=m.b.name),
         )
         for m in matches
+    ]
+
+
+@router.post("/events/{event_id}/agenda-draft", response_model=list[AgendaSlotRead])
+async def draft_agenda(
+    event_id: str,
+    payload: AgendaDraftRequest,
+    user: User = Depends(get_current_user),
+    svc: DiscoveryService = Depends(_service),
+) -> list[AgendaSlotRead]:
+    slots = await svc.draft_agenda(event_id, payload.theme, _read_scope(user))
+    return [
+        AgendaSlotRead(
+            order=slot.order,
+            relevance=round(slot.relevance, 4),
+            track=slot.track,
+            session=SessionRead.model_validate(slot.session),
+        )
+        for slot in slots
     ]

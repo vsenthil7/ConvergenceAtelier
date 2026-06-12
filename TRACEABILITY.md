@@ -19,7 +19,7 @@ backend 8/8 · frontend 7/7 · e2e 8/8 · build OK · `c214b2c`.
 
 ## Sprint 3 — AI discovery & matchmaking
 
-### Module 3A — Backend: semantic recommendations + matchmaking ✅ VERIFIED (126 tests, 100% cov, exit 0)
+### Module 3A — Backend: semantic recommendations + matchmaking ✅ VERIFIED (132 tests, 100% cov, exit 0)
 | ID | Requirement | Code | Test | Status |
 |----|-------------|------|------|--------|
 | R3.1 | Deterministic keyless embedding (demo mode) | `core/embedding.py` | `test_embedding.py` | ✅ |
@@ -30,11 +30,14 @@ backend 8/8 · frontend 7/7 · e2e 8/8 · build OK · `c214b2c`.
 | R3.6 | Tenant scoping + super-admin span on discovery | `api/discovery.py` | `test_discovery_api.py` | ✅ |
 | R3.7 | Auth-gated, all roles (attendee-facing) | `api/discovery.py` | `test_discovery_api.py` | ✅ |
 | R3.8 | Real-LLM key behind `use_mocks=false` (config) | `config.py` | `test_api_helpers.py` | ✅ |
+| R3.12 | AI agenda draft (theme → ordered, track-grouped running order) | `services/discovery_service.py`, `api/discovery.py` | `test_discovery_service.py`, `test_discovery_api.py` | ✅ |
 
-_Verified via subprocess pytest: 126 passed, 100% coverage, exit 0._
+_Verified via subprocess pytest: 132 passed, 100% coverage, exit 0._
 _Embedding is a deterministic bag-of-words hashing vectoriser (256-dim, L2-normalised),_
 _so recommendations are reproducible and keyless; a real provider injects with the same_
 _`(str)->list[float]` signature. Matchmaking is pure/synchronous over supplied profiles._
+_Agenda draft scores each session against the theme, groups by track, and opens with the_
+_most on-theme track — a deterministic, explainable "AI draft" running keyless._
 
 ### Module 3B — Frontend discovery UI ✅ VERIFIED (95 tests pass, exit 0)
 | R3.9 | Typed discovery client (similar/recommend/match) | `lib/discovery.ts` | `discovery.test.ts` | ✅ |

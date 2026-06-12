@@ -58,12 +58,13 @@ Module 2A backend ✅ · Module 2B frontend ✅ · Postgres (R2.15) ⬜ remainin
 - [ ] Unit + functional + negative + E2E 100%
 
 ## S3 — AI discovery & matchmaking  🟨
-Module 3A backend ✅ (126 tests) · Module 3B frontend discovery UI ✅ (95 tests) · AI agenda draft ⬜.
+Module 3A backend ✅ (132 tests) · Module 3B frontend discovery UI ✅ (95 tests) · AI agenda draft backend ✅.
 - [x] Semantic talk recommendations (deterministic keyless embeddings in demo mode)
 - [x] Attendee↔speaker / attendee↔attendee matchmaking (backend service + API)
-- [x] Backend unit + functional + negative 100% (**126 tests, 100% cov, exit 0**)
+- [x] AI agenda draft (theme → ordered, track-grouped running order) — backend service + API
+- [x] Backend unit + functional + negative 100% (**132 tests, 100% cov, exit 0**)
 - [x] Frontend discovery UI: Discover tab, interest search, ranked results grid (**95 tests, exit 0**)
-- [ ] AI agenda draft (AI Prompt + AI Chat)
+- [ ] Agenda-draft frontend UI (Kendo AI Prompt/Chat) + matchmaking view
 - [ ] Discovery E2E (Playwright)
 
 ## S4 — Real-time engagement  ⬜

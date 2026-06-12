@@ -49,6 +49,16 @@ class AttendeeMatch:
     score: float
 
 
+@dataclass(frozen=True)
+class AgendaSlot:
+    """A session placed in a suggested running order with a rationale."""
+
+    order: int
+    session: AgendaSession
+    relevance: float
+    track: str
+
+
 def _session_text(s: AgendaSession) -> str:
     """The text used to represent a session for embedding."""
     return f"{s.title} {s.track} {s.speaker}"
@@ -123,3 +133,41 @@ class DiscoveryService:
                 )
         matches.sort(key=lambda m: m.score, reverse=True)
         return matches[:limit]
+
+    async def draft_agenda(
+        self, event_id: str, theme: str, tenant_id: str | None
+    ) -> list[AgendaSlot]:
+        """Suggest a running order for an event's sessions around a theme.
+
+        Deterministic "AI draft": score every session against the theme, then
+        group by track (keeping each track's talks together) and order the
+        tracks by their best in-track relevance, so the most on-theme track
+        opens the day. Within a track, talks are ordered by relevance.
+        Runs keyless via the local embedder.
+        """
+        event = await self.events.get_event(event_id, tenant_id)
+        theme_vec = self.embed(theme)
+        scored = [
+            (s, cosine(theme_vec, self.embed(_session_text(s))))
+            for s in event.sessions
+        ]
+        # Best relevance per track decides track order; descending.
+        track_best: dict[str, float] = {}
+        for s, rel in scored:
+            track_best[s.track] = max(track_best.get(s.track, 0.0), rel)
+        ordered_tracks = sorted(track_best, key=lambda t: track_best[t], reverse=True)
+
+        slots: list[AgendaSlot] = []
+        order = 0
+        for track in ordered_tracks:
+            in_track = sorted(
+                [(s, rel) for s, rel in scored if s.track == track],
+                key=lambda pair: pair[1],
+                reverse=True,
+            )
+            for s, rel in in_track:
+                slots.append(
+                    AgendaSlot(order=order, session=s, relevance=rel, track=track)
+                )
+                order += 1
+        return slots

@@ -164,13 +164,19 @@ async def test_discovery_routes_called_directly(db):
     from datetime import datetime, timezone
 
     from app.api.discovery import (
+        draft_agenda,
         match_attendees,
         recommend_for_interests,
         similar_sessions,
     )
     from app.models.event import Event, Session
     from app.models.identity import Tenant
-    from app.schemas.discovery import AttendeeProfileIn, InterestQuery, MatchRequest
+    from app.schemas.discovery import (
+        AgendaDraftRequest,
+        AttendeeProfileIn,
+        InterestQuery,
+        MatchRequest,
+    )
     from app.services.discovery_service import DiscoveryService
 
     maker = db
@@ -204,6 +210,7 @@ async def test_discovery_routes_called_directly(db):
         await s.commit()
         first_id = (await s.execute(__import__("sqlalchemy").select(Session.id)))
         sid = first_id.scalars().first()
+        eid_for_draft = ev.id
 
     admin = User(email="a@x.com", role=Role.TENANT_ADMIN, tenant_id=tid)
 
@@ -227,6 +234,14 @@ async def test_discovery_routes_called_directly(db):
             svc=svc,
         )
         assert matches and {matches[0].a.id, matches[0].b.id} == {"1", "2"}
+        # agenda-draft handler body (covers the AgendaSlotRead comprehension).
+        draft = await draft_agenda(
+            eid_for_draft,
+            AgendaDraftRequest(theme="react hooks"),
+            user=admin,
+            svc=svc,
+        )
+        assert draft and draft[0].order == 0
 
 
 def test_ai_live_enabled_property():

@@ -40,3 +40,14 @@ class AttendeeMatchRead(BaseModel):
     score: float = Field(ge=0.0, le=1.0)
     a: AttendeeRef
     b: AttendeeRef
+
+
+class AgendaDraftRequest(BaseModel):
+    theme: str = Field(min_length=1, max_length=500)
+
+
+class AgendaSlotRead(BaseModel):
+    order: int
+    relevance: float = Field(ge=0.0, le=1.0)
+    track: str
+    session: SessionRead
