@@ -16,11 +16,13 @@ from app.api.errors import (
 )
 from app.api.events import router as events_router
 from app.api.discovery import router as discovery_router
+from app.api.hackathon import router as hackathon_router
 from app.api.health import router as health_router
 from app.config import settings
 from app.db.session import SessionLocal, init_models
 # Import models so create_all (demo mode) registers every table.
 from app.models import registration as _registration  # noqa: F401
+from app.models import hackathon as _hackathon  # noqa: F401
 from app.services.errors import (
     ConflictError,
     ForbiddenError,
@@ -59,6 +61,7 @@ def create_app() -> FastAPI:
     app.include_router(auth_router)
     app.include_router(events_router)
     app.include_router(discovery_router)
+    app.include_router(hackathon_router)
     return app
 
 

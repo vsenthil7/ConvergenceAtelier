@@ -346,3 +346,70 @@ async def test_recordings_route_called_directly(seeded):
         rows = await event_recordings(event_id, user=admin, svc=svc)
         assert len(rows) == 1
         assert rows[0].recording_url == "https://rec.example/z"
+
+
+async def test_hackathon_routes_called_directly(seeded):
+    """Cover every hackathon route handler body deterministically (S7.3)."""
+    from app.api.hackathon import (
+        create_submission,
+        create_team,
+        join_team,
+        leaderboard,
+        list_submissions,
+        list_teams,
+        record_score,
+        update_submission,
+    )
+    from app.models.identity import User
+    from app.schemas.hackathon import (
+        ScoreCreate,
+        SubmissionCreate,
+        SubmissionUpdate,
+        TeamCreate,
+    )
+    from app.services.hackathon_service import HackathonService
+    from tests.conftest import make_event
+
+    maker = seeded["maker"]
+    t1 = seeded["ids"]["t1"]
+    eid = await make_event(maker, t1, name="Hack")
+    attendee = User(id=seeded["ids"]["u1"], email="u1@x.com", role=Role.USER, tenant_id=t1)
+    judge = User(id=seeded["ids"]["a1"], email="a1@x.com", role=Role.TENANT_ADMIN, tenant_id=t1)
+    plain = User(id=seeded["ids"]["u1"], email="u1@x.com", role=Role.USER, tenant_id=t1)
+
+    async with maker() as s:
+        svc = HackathonService(s)
+        team = await create_team(eid, TeamCreate(name="Falcons"), user=attendee, svc=svc)
+        team_id = team.id
+        joined = await join_team(eid, team_id, user=attendee, svc=svc)
+        assert len(joined.members) == 1
+        teams = await list_teams(eid, user=attendee, svc=svc)
+        assert len(teams) == 1
+        sub = await create_submission(
+            eid, team_id, SubmissionCreate(title="Alpha"), user=attendee, svc=svc
+        )
+        sub_id = sub.id
+        patched = await update_submission(
+            eid, sub_id, SubmissionUpdate(title="Alpha2"), user=attendee, svc=svc
+        )
+        assert patched.title == "Alpha2"
+        subs = await list_submissions(eid, user=attendee, svc=svc)
+        assert len(subs) == 1
+
+    async with maker() as s:
+        svc = HackathonService(s)
+        score = await record_score(
+            eid, sub_id, ScoreCreate(criterion="impact", value=8), user=judge, svc=svc
+        )
+        assert score.value == 8
+        board = await leaderboard(eid, user=judge, svc=svc)
+        assert board[0].rank == 1
+        assert board[0].total_score == 8
+
+    # RBAC: a plain USER cannot score.
+    async with maker() as s:
+        svc = HackathonService(s)
+        with pytest.raises(ForbiddenError):
+            await record_score(
+                eid, sub_id, ScoreCreate(criterion="impact", value=5), user=plain, svc=svc
+            )
