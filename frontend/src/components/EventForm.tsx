@@ -2,7 +2,7 @@ import { useState } from "react";
 import { Input, TextArea } from "@progress/kendo-react-inputs";
 import { DateTimePicker } from "@progress/kendo-react-dateinputs";
 import { Button } from "@progress/kendo-react-buttons";
-import type { EventInput } from "../lib/events";
+import type { EventInput, EventType } from "../lib/events";
 import { validateEvent } from "../lib/validation";
 
 interface Props {
@@ -12,10 +12,20 @@ interface Props {
   onCancel?: () => void;
 }
 
+const EVENT_TYPES: { value: EventType; label: string }[] = [
+  { value: "conference", label: "Conference" },
+  { value: "hackathon", label: "Hackathon" },
+  { value: "webinar", label: "Webinar" },
+  { value: "meetup", label: "Meetup" },
+  { value: "workshop", label: "Workshop" },
+  { value: "hybrid", label: "Hybrid" },
+];
+
 const EMPTY: EventInput = {
   name: "",
   location: "",
   description: "",
+  event_type: "conference",
   starts_at: "",
   ends_at: "",
 };
@@ -60,6 +70,22 @@ export function EventForm({ initial, submitLabel = "Save", onSubmit, onCancel }:
           {errors.name}
         </span>
       )}
+
+      <label>
+        Event type
+        <select
+          value={form.event_type}
+          onChange={(e) => set("event_type", e.target.value)}
+          aria-label="event-type"
+          className="k-input k-input-md k-rounded-md k-input-solid"
+        >
+          {EVENT_TYPES.map((t) => (
+            <option key={t.value} value={t.value}>
+              {t.label}
+            </option>
+          ))}
+        </select>
+      </label>
 
       <label>
         Location

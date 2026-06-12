@@ -95,7 +95,7 @@ Backend ✅ (156 tests, 100% cov, `41c5ade`) · Frontend ✅ (125 tests, exit 0,
 - [ ] Vultr deploy verified live + smoke
 - [ ] Unit + functional + negative + E2E 100%
 
-## S7 — Event TYPES: one platform, many event shapes  ⬜  ← NEW (product vision)
+## S7 — Event TYPES: one platform, many event shapes  🟨  ← NEW (product vision)
 
 **The big idea.** Today every event is the same shape (name/location/dates/sessions).
 Real events are NOT interchangeable: a hackathon needs team formation + project
@@ -127,7 +127,7 @@ not duplication).
 - **Type-aware AI**: agenda-draft already exists; extend so a hackathon drafts a *judging schedule*, a webinar drafts a *promo timeline*, etc. (reuses the embedding engine — no new keys).
 
 ### Sprint breakdown (each lands GREEN independently, git-first, 100% cov)
-- [ ] **S7.1 Event type + config**: `event_type` enum + JSON `config` on Event; type-aware create/edit; migration; type badge on Events grid. Backend + frontend 100%.
+- [x] **S7.1 Event type + config**: `event_type` enum + JSON `config` on Event; type-aware create/edit; migration; type badge on Events grid. Backend ✅ (160 tests, 100% cov) + frontend ✅ (127 tests, 100% lines, prod tsc clean).
 - [ ] **S7.2 Session mode + recordings**: `mode` + `stream_url` + `recording_url` on Session; agenda shows online/in-person/▶ recording; "Recordings" catalog view. 100%.
 - [ ] **S7.3 Hackathon module**: Team + Submission models (repo/demo/description links), submission tracking states, judging rubric + scores, live leaderboard (Kendo Grid/Charts). 100%.
 - [ ] **S7.4 Webinar module**: stream URL + provider, registration cap + waitlist (reuses S3b registration), recording link, reminder schedule. 100%.

@@ -7,8 +7,11 @@ read schemas coerce them back to UTC-aware rather than rejecting them.
 from __future__ import annotations
 
 from datetime import datetime, timezone
+from typing import Any
 
 from pydantic import BaseModel, ConfigDict, Field, field_validator, model_validator
+
+from app.models.event import EventType
 
 
 def _require_aware(value: datetime, field: str) -> datetime:
@@ -46,6 +49,8 @@ class EventCreate(BaseModel):
     name: str = Field(min_length=1, max_length=200)
     location: str = Field(default="", max_length=200)
     description: str = Field(default="", max_length=5000)
+    event_type: EventType = EventType.CONFERENCE
+    config: dict[str, Any] = Field(default_factory=dict)
     starts_at: datetime
     ends_at: datetime
 
@@ -64,6 +69,8 @@ class EventUpdate(BaseModel):
     name: str | None = Field(default=None, min_length=1, max_length=200)
     location: str | None = Field(default=None, max_length=200)
     description: str | None = Field(default=None, max_length=5000)
+    event_type: EventType | None = None
+    config: dict[str, Any] | None = None
     starts_at: datetime | None = None
     ends_at: datetime | None = None
 
@@ -106,6 +113,8 @@ class EventRead(BaseModel):
     name: str
     location: str
     description: str
+    event_type: EventType
+    config: dict[str, Any] = {}
     starts_at: datetime
     ends_at: datetime
     sessions: list[SessionRead] = []

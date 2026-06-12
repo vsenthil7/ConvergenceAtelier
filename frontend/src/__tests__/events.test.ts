@@ -17,6 +17,8 @@ const sampleEvent: EventModel = {
   name: "React Summit",
   location: "Amsterdam",
   description: "",
+  event_type: "conference",
+  config: {},
   starts_at: "2026-06-11T09:00:00+00:00",
   ends_at: "2026-06-12T17:00:00+00:00",
   sessions: [],
@@ -45,6 +47,7 @@ describe("events api client", () => {
         name: "React Summit",
         location: "Amsterdam",
         description: "",
+        event_type: "conference",
         starts_at: sampleEvent.starts_at,
         ends_at: sampleEvent.ends_at,
       },
@@ -104,7 +107,7 @@ describe("events api client", () => {
   it("falls back when error body lacks a string detail (negative)", async () => {
     const f = fetchReturning(422, { detail: [{ msg: "bad" }] }, false);
     await expect(createEvent(
-      { name: "", location: "", description: "", starts_at: "", ends_at: "" },
+      { name: "", location: "", description: "", event_type: "conference", starts_at: "", ends_at: "" },
       f,
     )).rejects.toThrow("Request failed: 422");
   });

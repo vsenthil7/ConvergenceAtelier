@@ -11,11 +11,21 @@ export interface AgendaSession {
   ends_at: string;
 }
 
+export type EventType =
+  | "conference"
+  | "hackathon"
+  | "webinar"
+  | "meetup"
+  | "workshop"
+  | "hybrid";
+
 export interface EventModel {
   id: string;
   name: string;
   location: string;
   description: string;
+  event_type: EventType;
+  config: Record<string, unknown>;
   starts_at: string;
   ends_at: string;
   sessions: AgendaSession[];
@@ -25,6 +35,7 @@ export interface EventInput {
   name: string;
   location: string;
   description: string;
+  event_type: EventType;
   starts_at: string;
   ends_at: string;
 }

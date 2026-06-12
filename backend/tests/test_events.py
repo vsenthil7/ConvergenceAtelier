@@ -61,6 +61,52 @@ async def test_add_session(make_client, seeded):
         assert len(full.json()["sessions"]) == 1
 
 
+# ---------- event types (S7) ----------
+
+async def test_event_defaults_to_conference(make_client, seeded):
+    maker, ids = seeded["maker"], seeded["ids"]
+    async with make_client(maker, _admin1(ids)) as c:
+        body = (await c.post("/api/events", json=event_payload())).json()
+    assert body["event_type"] == "conference"
+    assert body["config"] == {}
+
+
+async def test_create_typed_event_with_config(make_client, seeded):
+    maker, ids = seeded["maker"], seeded["ids"]
+    payload = event_payload(
+        event_type="hackathon",
+        config={"judging_opens": "2026-07-12T15:00:00+00:00", "max_team_size": 5},
+    )
+    async with make_client(maker, _admin1(ids)) as c:
+        created = (await c.post("/api/events", json=payload)).json()
+        assert created["event_type"] == "hackathon"
+        assert created["config"]["max_team_size"] == 5
+        # round-trips on read
+        fetched = (await c.get(f"/api/events/{created['id']}")).json()
+        assert fetched["event_type"] == "hackathon"
+        assert fetched["config"]["judging_opens"].startswith("2026-07-12")
+
+
+async def test_update_event_type_and_config(make_client, seeded):
+    maker, ids = seeded["maker"], seeded["ids"]
+    async with make_client(maker, _admin1(ids)) as c:
+        eid = (await c.post("/api/events", json=event_payload())).json()["id"]
+        patched = await c.patch(
+            f"/api/events/{eid}",
+            json={"event_type": "webinar", "config": {"stream_url": "https://x.example/live"}},
+        )
+        assert patched.status_code == 200
+        assert patched.json()["event_type"] == "webinar"
+        assert patched.json()["config"]["stream_url"] == "https://x.example/live"
+
+
+async def test_create_event_invalid_type_422(make_client, seeded):
+    maker, ids = seeded["maker"], seeded["ids"]
+    async with make_client(maker, _admin1(ids)) as c:
+        resp = await c.post("/api/events", json=event_payload(event_type="banquet"))
+        assert resp.status_code == 422
+
+
 # ---------- tenant isolation ----------
 
 async def test_tenant_admin_cannot_see_other_tenant_events(make_client, seeded):

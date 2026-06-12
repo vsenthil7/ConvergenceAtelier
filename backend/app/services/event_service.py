@@ -49,6 +49,8 @@ class EventService:
             name=data.name,
             location=data.location,
             description=data.description,
+            event_type=data.event_type,
+            config=data.config,
             starts_at=data.starts_at,
             ends_at=data.ends_at,
         )

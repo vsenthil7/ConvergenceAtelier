@@ -2,13 +2,19 @@
 
 Events are tenant-scoped: every event belongs to exactly one tenant, and the
 service layer filters by the caller's tenant (super-admins may span all).
+
+Events are *typed* (S7): an ``event_type`` selects which feature modules apply,
+and a free-form ``config`` JSON object carries type-specific settings without
+schema churn. The agenda/session/registration layers are shared by every type.
 """
 from __future__ import annotations
 
+import enum
 import uuid
 from datetime import datetime
+from typing import Any
 
-from sqlalchemy import ForeignKey, String, Text
+from sqlalchemy import Enum, ForeignKey, JSON, String, Text
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from app.db.base import AwareDateTime, Base, TimestampMixin
@@ -16,6 +22,25 @@ from app.db.base import AwareDateTime, Base, TimestampMixin
 
 def _uuid() -> str:
     return uuid.uuid4().hex
+
+
+class EventType(str, enum.Enum):
+    """The shape of an event; selects which feature modules apply (S7).
+
+    CONFERENCE — multi-track agenda, speakers, rooms (the default, always valid).
+    HACKATHON  — teams, project submissions, judging, leaderboard.
+    WEBINAR    — single stream, capacity cap, recording, reminders.
+    MEETUP     — RSVP, venue, casual / recurring.
+    WORKSHOP   — limited seats, materials, prerequisites.
+    HYBRID     — links physical + online events, shared catalog.
+    """
+
+    CONFERENCE = "conference"
+    HACKATHON = "hackathon"
+    WEBINAR = "webinar"
+    MEETUP = "meetup"
+    WORKSHOP = "workshop"
+    HYBRID = "hybrid"
 
 
 class Event(TimestampMixin, Base):
@@ -30,6 +55,11 @@ class Event(TimestampMixin, Base):
     name: Mapped[str] = mapped_column(String(200), nullable=False)
     location: Mapped[str] = mapped_column(String(200), default="", nullable=False)
     description: Mapped[str] = mapped_column(Text, default="", nullable=False)
+    event_type: Mapped[EventType] = mapped_column(
+        Enum(EventType), default=EventType.CONFERENCE, nullable=False
+    )
+    # Type-specific settings (e.g. webinar stream URL, hackathon judging window).
+    config: Mapped[dict[str, Any]] = mapped_column(JSON, default=dict, nullable=False)
     starts_at: Mapped[datetime] = mapped_column(AwareDateTime, nullable=False)
     ends_at: Mapped[datetime] = mapped_column(AwareDateTime, nullable=False)
 

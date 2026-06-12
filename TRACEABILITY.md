@@ -85,13 +85,20 @@ Each row lands GREEN independently with 100% coverage, git-first.
 
 | ID | Requirement | Status |
 |----|-------------|--------|
-| R7.1 | `event_type` enum + JSON `config` on Event; type-aware create/edit + grid badge | ⬜ |
+| R7.1 | `event_type` enum + JSON `config` on Event; type-aware create/edit + grid badge + migration | ✅ |
 | R7.2 | Session `mode` (in_person/online/hybrid) + `stream_url` + `recording_url`; recordings catalog | ⬜ |
 | R7.3 | Hackathon module: Team + Submission (repo/demo links) + judging rubric + leaderboard | ⬜ |
 | R7.4 | Webinar module: stream provider + registration cap/waitlist + recording + reminders | ⬜ |
 | R7.5 | Linked/hybrid events: event-to-event links + cross-event session catalog | ⬜ |
 | R7.6 | Type-aware AI drafts (judging schedule / promo timeline / workshop plan) | ⬜ |
 
+_R7.1 VERIFIED: backend `EventType` enum (conference/hackathon/webinar/meetup/workshop/_
+_hybrid) + JSON `config` on Event, type-aware create/update/read schemas, migration_
+_`b2c3d4e5f6a7` (upgrade+downgrade verified across all 3 revisions) — 160 tests, 100% cov._
+_Frontend: EventForm type picker, EventsView type badge column — 127 vitest tests, 100%_
+_lines, prod tsc clean. Code: `models/event.py`, `schemas/event.py`, `services/event_service.py`,_
+_`migrations/versions/b2c3d4e5f6a7_*`, `components/EventForm.tsx`, `components/EventsView.tsx`,_
+_`lib/events.ts`. Tests: `test_events.py`, `EventForm.test.tsx`, `EventsView.test.tsx`._
 _Design rule recorded: types are composable modules; never fork the Event model per type._
 
 

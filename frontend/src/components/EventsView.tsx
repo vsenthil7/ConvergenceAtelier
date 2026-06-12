@@ -119,6 +119,17 @@ export function EventsView({ fetchImpl = fetch, newEventDefaults, canWrite = tru
     }
   };
 
+  const TypeCell = (props: GridCustomCellProps) => {
+    const row = props.dataItem as EventModel;
+    return (
+      <td {...props.tdProps}>
+        <span className={`event-type-badge event-type-${row.event_type}`}>
+          {row.event_type}
+        </span>
+      </td>
+    );
+  };
+
   const ActionsCell = (props: GridCustomCellProps) => {
     const row = props.dataItem as EventModel;
     return (
@@ -179,6 +190,7 @@ export function EventsView({ fetchImpl = fetch, newEventDefaults, canWrite = tru
         <div data-testid="events-grid">
           <Grid data={events} scrollable="none">
             <GridColumn field="name" title="Name" />
+            <GridColumn title="Type" cells={{ data: TypeCell }} width="120px" />
             <GridColumn field="location" title="Location" />
             <GridColumn field="starts_at" title="Starts" />
             <GridColumn field="ends_at" title="Ends" />

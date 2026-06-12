@@ -9,6 +9,8 @@ const event1: EventModel = {
   name: "React Summit",
   location: "Amsterdam",
   description: "",
+  event_type: "conference",
+  config: {},
   starts_at: "2026-06-11T09:00:00.000Z",
   ends_at: "2026-06-12T17:00:00.000Z",
   sessions: [
@@ -53,6 +55,7 @@ function makeFetch(initial: EventModel[]) {
       const created: EventModel = {
         ...JSON.parse(String(init?.body)),
         id: "new",
+        config: {},
         sessions: [],
       };
       store = [...store, created];
@@ -220,5 +223,20 @@ describe("EventsView", () => {
     const toggle = await screen.findByTestId("register-toggle");
     // status unknown → defaults to the register affordance
     expect(toggle).toHaveTextContent("Register for this event");
+  });
+
+  it("renders an event-type badge in the grid (S7 functional)", async () => {
+    const hackathon: EventModel = {
+      ...event1,
+      id: "h1",
+      name: "JS Hack",
+      event_type: "hackathon",
+      sessions: [],
+    };
+    const f = makeFetch([hackathon]);
+    render(<EventsView fetchImpl={f} />);
+    const grid = await screen.findByTestId("events-grid");
+    const badge = within(grid).getByText("hackathon");
+    expect(badge).toHaveClass("event-type-badge", "event-type-hackathon");
   });
 });

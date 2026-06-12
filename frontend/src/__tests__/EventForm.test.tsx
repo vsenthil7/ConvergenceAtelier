@@ -8,6 +8,7 @@ const valid: EventInput = {
   name: "React Summit",
   location: "Amsterdam",
   description: "JS conf",
+  event_type: "conference",
   starts_at: "2026-06-11T09:00:00.000Z",
   ends_at: "2026-06-12T17:00:00.000Z",
 };
@@ -87,5 +88,17 @@ describe("EventForm", () => {
     );
     // The date pickers handle null gracefully; the form still renders its name field.
     expect(screen.getByLabelText("event-name")).toBeInTheDocument();
+  });
+
+  it("selects an event type and submits it (S7 functional)", async () => {
+    const onSubmit = vi.fn();
+    render(<EventForm initial={valid} onSubmit={onSubmit} />);
+    await userEvent.selectOptions(screen.getByLabelText("event-type"), "hackathon");
+    await userEvent.click(screen.getByText("Save"));
+    await waitFor(() =>
+      expect(onSubmit).toHaveBeenCalledWith(
+        expect.objectContaining({ event_type: "hackathon" }),
+      ),
+    );
   });
 });
