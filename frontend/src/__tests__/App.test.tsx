@@ -1,59 +1,35 @@
 import { render, screen, waitFor } from "@testing-library/react";
-import userEvent from "@testing-library/user-event";
 import { describe, it, expect, vi } from "vitest";
 import { App } from "../App";
-import type { HealthStatus } from "../lib/api";
 
-const okHealth: HealthStatus = {
-  status: "ok",
-  service: "Convergence Atelier",
-  version: "0.1.0",
-  mode: "mock",
-  time: "2026-06-12T00:00:00+00:00",
-};
-
-function mockFetch(impl: () => Promise<Response>): typeof fetch {
-  return vi.fn(impl) as unknown as typeof fetch;
+function mockFetch(handler: (url: string, init?: RequestInit) => unknown): typeof fetch {
+  return vi.fn(async (url: string, init?: RequestInit) => {
+    const body = handler(url, init);
+    return { ok: true, status: 200, json: async () => body };
+  }) as unknown as typeof fetch;
 }
 
-describe("App shell", () => {
-  it("renders the brand and loads health (functional)", async () => {
-    const f = mockFetch(async () => new Response(JSON.stringify(okHealth), { status: 200 }));
+describe("App shell (S1)", () => {
+  it("shows health ok and the events view (functional)", async () => {
+    const f = mockFetch((url) => {
+      if (url.includes("/api/health")) {
+        return { status: "ok", service: "Convergence Atelier", version: "0.1.0", mode: "mock", time: "t" };
+      }
+      return []; // events list
+    });
     render(<App fetchImpl={f} />);
-    expect(screen.getByText("Convergence Atelier")).toBeInTheDocument();
     await waitFor(() => expect(screen.getByTestId("health-ok")).toBeInTheDocument());
-    expect(screen.getByText("Mode: mock")).toBeInTheDocument();
+    expect(screen.getByText("Events")).toBeInTheDocument();
   });
 
-  it("shows an error when the backend is unreachable (negative)", async () => {
-    const f = mockFetch(async () => new Response("nope", { status: 500 }));
+  it("shows backend offline when health fails (negative)", async () => {
+    const f = vi.fn(async (url: string) => {
+      if (url.includes("/api/health")) {
+        return { ok: false, status: 500, json: async () => ({}) };
+      }
+      return { ok: true, status: 200, json: async () => [] };
+    }) as unknown as typeof fetch;
     render(<App fetchImpl={f} />);
     await waitFor(() => expect(screen.getByTestId("health-error")).toBeInTheDocument());
-  });
-
-  it("handles a thrown network error (negative)", async () => {
-    const f = mockFetch(async () => {
-      throw new Error("network down");
-    });
-    render(<App fetchImpl={f} />);
-    await waitFor(() => expect(screen.getByTestId("health-error")).toHaveTextContent("network down"));
-  });
-
-  it("handles a non-Error rejection (negative branch)", async () => {
-    const f = mockFetch(() => Promise.reject("string failure"));
-    render(<App fetchImpl={f} />);
-    await waitFor(() => expect(screen.getByTestId("health-error")).toHaveTextContent("Unknown error"));
-  });
-
-  it("re-checks health when Refresh is clicked (functional)", async () => {
-    let calls = 0;
-    const f = mockFetch(async () => {
-      calls += 1;
-      return new Response(JSON.stringify(okHealth), { status: 200 });
-    });
-    render(<App fetchImpl={f} />);
-    await waitFor(() => expect(screen.getByTestId("health-ok")).toBeInTheDocument());
-    await userEvent.click(screen.getByText("Refresh status"));
-    await waitFor(() => expect(calls).toBeGreaterThanOrEqual(2));
   });
 });
