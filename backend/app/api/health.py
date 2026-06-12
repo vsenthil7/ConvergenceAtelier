@@ -29,13 +29,13 @@ async def health() -> dict[str, object]:
 @router.get("/api/ready")
 async def ready(session: AsyncSession = Depends(get_session)) -> dict[str, object]:
     """Readiness: verifies DB connectivity and reports tenant/user counts."""
-    tenants = await session.scalar(select(func.count()).select_from(Tenant))
-    users = await session.scalar(select(func.count()).select_from(User))
+    tenants = await session.scalar(select(func.count()).select_from(Tenant)) or 0
+    users = await session.scalar(select(func.count()).select_from(User)) or 0
     return {
         "status": "ready",
         "database": "ok",
-        "tenants": int(tenants or 0),
-        "users": int(users or 0),
+        "tenants": int(tenants),
+        "users": int(users),
         "google_oauth": settings.google_oauth_enabled,
         "time": utcnow().isoformat(),
     }

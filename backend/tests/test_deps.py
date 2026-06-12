@@ -31,9 +31,9 @@ def test_user_denied_other_tenant():
 
 # ---------- Google tokeninfo verification (httpx mocked) ----------
 
-def _mock_async_client(status_code: int, payload: dict):
+def _mock_async_client(resp_status: int, payload: dict):
     class _Resp:
-        status_code = status_code
+        status_code = resp_status
 
         def json(self):
             return payload
@@ -69,3 +69,56 @@ async def test_verify_google_audience_mismatch(monkeypatch):
     monkeypatch.setattr(httpx, "AsyncClient", _mock_async_client(200, {"email": "g@x.com", "aud": "other"}))
     with pytest.raises(UnauthorizedError):
         await verify_google_id_token("tok")
+
+
+# ---------- get_current_user edge: token without subject ----------
+
+async def test_current_user_token_missing_subject(make_client, seeded):
+    import jwt as _jwt
+    from app.config import settings as _settings
+
+    # A validly-signed token that carries no "sub" claim.
+    token = _jwt.encode({"role": "user"}, _settings.jwt_secret, algorithm=_settings.jwt_algorithm)
+    async with make_client(seeded["maker"], f"Bearer {token}") as c:
+        resp = await c.get("/api/auth/me")
+    assert resp.status_code == 401
+
+
+# ---------- get_current_user resolved directly (deterministic coverage) ----------
+
+async def test_get_current_user_resolves_and_missing(db):
+    from fastapi.security import HTTPAuthorizationCredentials
+    from app.core.deps import get_current_user
+    from app.core.security import create_access_token
+    from app.models.identity import Role, User
+
+    maker = db
+    async with maker() as s:
+        u = User(email="who@x.com", role=Role.USER, tenant_id=None)
+        s.add(u)
+        await s.commit()
+        await s.refresh(u)
+        uid = u.id
+
+    # Valid token -> returns the user.
+    async with maker() as s:
+        creds = HTTPAuthorizationCredentials(
+            scheme="Bearer",
+            credentials=create_access_token(uid, {"role": "user", "tenant_id": None}),
+        )
+        resolved = await get_current_user(creds=creds, session=s)
+        assert resolved.email == "who@x.com"
+
+    # Token for a non-existent user -> Unauthorized.
+    async with maker() as s:
+        creds = HTTPAuthorizationCredentials(
+            scheme="Bearer",
+            credentials=create_access_token("missing", {"role": "user", "tenant_id": None}),
+        )
+        with pytest.raises(UnauthorizedError):
+            await get_current_user(creds=creds, session=s)
+
+    # No credentials at all -> Unauthorized.
+    async with maker() as s:
+        with pytest.raises(UnauthorizedError):
+            await get_current_user(creds=None, session=s)

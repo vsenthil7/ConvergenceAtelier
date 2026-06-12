@@ -27,6 +27,19 @@ def test_verify_empty_hash_is_false():
     assert verify_password("anything", "") is False
 
 
+def test_long_password_is_supported():
+    # >72 bytes must not raise; pre-hash path keeps bcrypt happy.
+    long = "p" * 200
+    h = hash_password(long)
+    assert verify_password(long, h) is True
+    assert verify_password("p" * 199, h) is False
+
+
+def test_verify_malformed_hash_is_false():
+    # A non-bcrypt hash string triggers bcrypt's ValueError -> handled as False.
+    assert verify_password("x", "not-a-bcrypt-hash") is False
+
+
 def test_token_round_trip():
     token = create_access_token("user1", {"role": "user", "tenant_id": None})
     claims = decode_access_token(token)

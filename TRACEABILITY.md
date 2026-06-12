@@ -12,24 +12,28 @@ backend 8/8 · frontend 7/7 · e2e 8/8 · build OK · `c214b2c`.
 
 ## Sprint 2 — Auth, multi-tenancy, RBAC, Postgres, SSO, demo data
 
-### Module 2A — Backend auth + tenancy (authored, awaiting verify)
+### Module 2A — Backend auth + tenancy ✅ VERIFIED (95 tests, 100% cov, exit 0)
 | ID | Requirement | Code | Test | Status |
 |----|-------------|------|------|--------|
-| R2.1 | Tenant + User models, 3 roles | `models/identity.py` | `test_auth.py`, `test_deps.py` | 🟨 |
-| R2.2 | Password hashing + JWT | `core/security.py` | `test_google_sso.py` | 🟨 |
-| R2.3 | Email/password login | `api/auth.py`, `services/auth_service.py` | `test_auth.py` | 🟨 |
-| R2.4 | Google SSO (optional, injectable verify) | `auth_service.py`, `core/deps.py` | `test_google_sso.py`, `test_deps.py` | 🟨 |
-| R2.5 | current-user dep + bearer | `core/deps.py` | `test_auth.py`, `test_deps.py` | 🟨 |
-| R2.6 | Super-admin spans all tenants | `api/events.py`, `event_service.py` | `test_events.py` | 🟨 |
-| R2.7 | Tenant-admin scoped to own tenant | `event_service.py`, `auth_service.py` | `test_events.py`, `test_auth.py` | 🟨 |
-| R2.8 | User role cannot write events | `api/events.py` | `test_events.py` | 🟨 |
-| R2.9 | Tenant isolation (no cross-tenant read) | `event_service.py` | `test_events.py` | 🟨 |
-| R2.10 | User management (scoped create/list) | `auth_service.py`, `api/auth.py` | `test_auth.py` | 🟨 |
-| R2.11 | Tenant-admin can't mint super-admin (neg) | `auth_service.py` | `test_auth.py` | 🟨 |
-| R2.12 | Conflict/401/403 handlers | `api/errors.py` | `test_auth.py`, `test_events.py` | 🟨 |
-| R2.13 | Demo seeder (idempotent) | `services/seed.py` | `test_seed.py` | 🟨 |
-| R2.14 | DB-aware readiness `/api/ready` | `api/health.py` | `test_health.py` | 🟨 |
+| R2.1 | Tenant + User models, 3 roles | `models/identity.py` | `test_auth.py`, `test_deps.py` | ✅ |
+| R2.2 | Password hashing + JWT | `core/security.py` | `test_google_sso.py` | ✅ |
+| R2.3 | Email/password login | `api/auth.py`, `services/auth_service.py` | `test_auth.py`, `test_auth_service.py` | ✅ |
+| R2.4 | Google SSO (optional, injectable verify) | `auth_service.py`, `core/deps.py` | `test_google_sso.py`, `test_deps.py` | ✅ |
+| R2.5 | current-user dep + bearer | `core/deps.py` | `test_auth.py`, `test_deps.py` | ✅ |
+| R2.6 | Super-admin spans all tenants | `api/events.py`, `event_service.py` | `test_events.py` | ✅ |
+| R2.7 | Tenant-admin scoped to own tenant | `event_service.py`, `auth_service.py` | `test_events.py`, `test_auth.py` | ✅ |
+| R2.8 | User role cannot write events | `api/events.py` | `test_events.py`, `test_api_helpers.py` | ✅ |
+| R2.9 | Tenant isolation (no cross-tenant read) | `event_service.py` | `test_events.py` | ✅ |
+| R2.10 | User management (scoped create/list) | `auth_service.py`, `api/auth.py` | `test_auth.py`, `test_auth_service.py` | ✅ |
+| R2.11 | Tenant-admin can't mint super-admin (neg) | `auth_service.py` | `test_auth.py`, `test_auth_service.py` | ✅ |
+| R2.12 | Conflict/401/403 handlers | `api/errors.py` | `test_auth.py`, `test_events.py` | ✅ |
+| R2.13 | Demo seeder (idempotent) | `services/seed.py` | `test_seed.py` | ✅ |
+| R2.14 | DB-aware readiness `/api/ready` | `api/health.py` | `test_health.py` | ✅ |
 | R2.15 | Postgres persistence (prod) | `db/session.py`, compose | deploy smoke | ⬜ |
+
+_Verified via subprocess pytest: 95 passed, 100% coverage, exit 0. Pushed in this cycle._
+_Bcrypt note: uses the `bcrypt` library directly (passlib 1.7.4 is incompatible with_
+_bcrypt 5.x); long secrets are SHA-256 pre-hashed so no password is ever rejected._
 
 ### Module 2B — Frontend login + role-aware UI  ⬜
 | R2.16 | Login screen (password + Google) | `frontend` (next) | vitest + e2e | ⬜ |

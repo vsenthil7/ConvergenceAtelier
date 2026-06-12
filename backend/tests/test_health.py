@@ -46,3 +46,14 @@ async def test_ready_empty_db(make_client, db):
     assert resp.status_code == 200
     assert resp.json()["tenants"] == 0
     assert resp.json()["users"] == 0
+
+
+async def test_ready_called_directly(seeded):
+    """Deterministic coverage of the readiness handler body."""
+    from app.api.health import ready
+
+    async with seeded["maker"]() as s:
+        result = await ready(session=s)
+    assert result["status"] == "ready"
+    assert result["tenants"] == 2
+    assert result["users"] == 4

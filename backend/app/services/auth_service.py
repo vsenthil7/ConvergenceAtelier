@@ -17,7 +17,6 @@ from app.schemas.auth import TenantCreate, UserCreate
 from app.services.errors import (
     ConflictError,
     ForbiddenError,
-    NotFoundError,
     UnauthorizedError,
 )
 
@@ -110,13 +109,6 @@ class AuthService:
         return self._token_for(user)
 
     # ---------- user management (scoped) ----------
-
-    async def get_user(self, user_id: str) -> User:
-        result = await self.session.execute(select(User).where(User.id == user_id))
-        user = result.scalar_one_or_none()
-        if user is None:
-            raise NotFoundError("User", user_id)
-        return user
 
     async def list_users_for(self, actor: User) -> list[User]:
         stmt = select(User).order_by(User.email)

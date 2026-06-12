@@ -72,6 +72,20 @@ async def test_auth_config_google_disabled(make_client, db):
     assert resp.json()["google_enabled"] is False
 
 
+async def test_google_login_via_api_provisions_user(make_client, db, monkeypatch):
+    """POST /api/auth/google with the Google verifier patched returns a token."""
+    import app.api.auth as auth_module
+
+    async def fake_verify(_token: str):
+        return {"email": "sso-api@x.com", "name": "SSO Api"}
+
+    monkeypatch.setattr(auth_module, "verify_google_id_token", fake_verify)
+    async with make_client(db) as c:
+        resp = await c.post("/api/auth/google", json={"id_token": "any"})
+    assert resp.status_code == 200
+    assert resp.json()["access_token"]
+
+
 # ---------- tenant creation (super-admin only) ----------
 
 async def test_super_admin_creates_tenant(make_client, seeded):

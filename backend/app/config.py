@@ -23,7 +23,7 @@ class Settings(BaseSettings):
     cors_origins: str = "http://localhost:5173,http://localhost:8095"
 
     # --- auth ---
-    jwt_secret: str = "dev-insecure-change-me"
+    jwt_secret: str = "dev-insecure-change-me-0123456789abcdef"
     jwt_algorithm: str = "HS256"
     access_token_ttl_minutes: int = 720
 
