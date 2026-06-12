@@ -102,7 +102,14 @@ Each row lands GREEN independently with 100% coverage, git-first.
 | R7.3.6 | Frontend hackathon client types + calls | ✅ |
 | R7.3.7 | Hackathon panel on event page (team list + submission form) | ✅ |
 | R7.3.8 | Live leaderboard (Kendo Grid) ranked by score | ✅ |
-| R7.4 | Webinar module: stream provider + registration cap/waitlist + recording + reminders | ⬜ |
+| R7.4 | Webinar module: stream provider + registration cap/waitlist + recording + reminders | 🟨 |
+| R7.4.1 | `WAITLISTED` registration status + migration | ⬜ |
+| R7.4.2 | WebinarService: capacity-aware register + waitlist auto-promotion | ⬜ |
+| R7.4.3 | REST webinar status + admin waitlist endpoints | ⬜ |
+| R7.4.4 | Reminder schedule from `config.reminders` → absolute send times | ⬜ |
+| R7.4.5 | Frontend webinar client types + calls | ⬜ |
+| R7.4.6 | Webinar panel on event page (seat counter + waitlist + stream + reminders) | ⬜ |
+| R7.4.7 | Seed: demo webinar with capacity, reminders, registrations incl. waitlist | ⬜ |
 | R7.5 | Linked/hybrid events: event-to-event links + cross-event session catalog | ⬜ |
 | R7.6 | Type-aware AI drafts (judging schedule / promo timeline / workshop plan) | ⬜ |
 
