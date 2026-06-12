@@ -19,16 +19,23 @@ from app.schemas.discovery import (
     AttendeeRef,
     InterestQuery,
     MatchRequest,
+    PlanDraftRequest,
+    PlanItemRead,
     ScoredSessionRead,
 )
 from app.schemas.event import SessionRead
 from app.services.discovery_service import AttendeeProfile, DiscoveryService
+from app.services.plan_service import PlanService
 
 router = APIRouter(prefix="/api/discovery", tags=["discovery"])
 
 
 def _service(session: AsyncSession = Depends(get_session)) -> DiscoveryService:
     return DiscoveryService(session)
+
+
+def _plan_service(session: AsyncSession = Depends(get_session)) -> PlanService:
+    return PlanService(session)
 
 
 def _read_scope(user: User) -> str | None:
@@ -102,4 +109,26 @@ async def draft_agenda(
             session=SessionRead.model_validate(slot.session),
         )
         for slot in slots
+    ]
+
+
+@router.post("/events/{event_id}/plan", response_model=list[PlanItemRead])
+async def draft_plan(
+    event_id: str,
+    payload: PlanDraftRequest,
+    user: User = Depends(get_current_user),
+    svc: PlanService = Depends(_plan_service),
+) -> list[PlanItemRead]:
+    """Draft a type-aware plan (judging schedule / promo timeline / etc.)."""
+    items = await svc.draft_plan(event_id, payload.theme, _read_scope(user))
+    return [
+        PlanItemRead(
+            order=i.order,
+            key=i.key,
+            label=i.label,
+            detail=i.detail,
+            target_at=i.target_at,
+            relevance=round(i.relevance, 4),
+        )
+        for i in items
     ]

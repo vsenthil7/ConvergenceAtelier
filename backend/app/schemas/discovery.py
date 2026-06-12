@@ -5,6 +5,8 @@ API, wrapping each with a 0..1 ``score``.
 """
 from __future__ import annotations
 
+from datetime import datetime
+
 from pydantic import BaseModel, Field
 
 from app.schemas.event import SessionRead
@@ -51,3 +53,18 @@ class AgendaSlotRead(BaseModel):
     relevance: float = Field(ge=0.0, le=1.0)
     track: str
     session: SessionRead
+
+
+class PlanDraftRequest(BaseModel):
+    # Theme is optional for plans: an empty theme yields the plain template
+    # (relevance 0) without scoring against any focus.
+    theme: str = Field(default="", max_length=500)
+
+
+class PlanItemRead(BaseModel):
+    order: int
+    key: str
+    label: str
+    detail: str
+    target_at: datetime
+    relevance: float = Field(ge=0.0, le=1.0)

@@ -507,3 +507,34 @@ async def test_link_routes_called_directly(seeded):
             await create_link(e1, LinkRequest(other_event_id=e2), user=plain, svc=svc)
         with pytest.raises(ForbiddenError):
             await remove_link(e1, e2, user=plain, svc=svc)
+
+
+async def test_plan_route_called_directly(seeded):
+    """Cover the plan route handler body deterministically (S7.6)."""
+    from datetime import datetime, timezone
+
+    from app.api.discovery import draft_plan
+    from app.models.event import Event, EventType
+    from app.models.identity import User
+    from app.schemas.discovery import PlanDraftRequest
+    from app.services.plan_service import PlanService
+
+    maker = seeded["maker"]
+    t1 = seeded["ids"]["t1"]
+    async with maker() as s:
+        e = Event(
+            tenant_id=t1, name="Hack", event_type=EventType.HACKATHON,
+            starts_at=datetime(2026, 7, 1, 9, tzinfo=timezone.utc),
+            ends_at=datetime(2026, 7, 3, 17, tzinfo=timezone.utc),
+        )
+        s.add(e)
+        await s.commit()
+        await s.refresh(e)
+        eid = e.id
+
+    user = User(id=seeded["ids"]["u1"], email="u1@x.com", role=Role.USER, tenant_id=t1)
+    async with maker() as s:
+        svc = PlanService(s)
+        rows = await draft_plan(eid, PlanDraftRequest(theme="judging"), user=user, svc=svc)
+    assert [r.key for r in rows][0] == "registration"
+    assert all(0.0 <= r.relevance <= 1.0 for r in rows)
