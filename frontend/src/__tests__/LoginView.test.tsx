@@ -77,4 +77,34 @@ describe("LoginView", () => {
     await waitFor(() => expect(screen.getByTestId("login-submit")).toBeInTheDocument());
     expect(screen.queryByTestId("login-google")).not.toBeInTheDocument();
   });
+
+  it("one-tap demo button fills credentials and signs in (functional)", async () => {
+    const f = mockFetch({});
+    renderLogin(f);
+    await userEvent.click(await screen.findByTestId("demo-admin"));
+    // The email field is populated so the user can see who they are signed in as.
+    await waitFor(() =>
+      expect(screen.getByLabelText("login-email")).toHaveValue("admin@react-summit.demo"),
+    );
+    // A login call was made with the seeded demo credentials.
+    const calls = (f as unknown as { mock: { calls: unknown[][] } }).mock.calls;
+    const loginCall = calls.find((c) => String(c[0]).includes("/api/auth/login"));
+    expect(loginCall).toBeTruthy();
+    const body = JSON.parse(String((loginCall![1] as RequestInit).body));
+    expect(body.email).toBe("admin@react-summit.demo");
+    expect(body.password).toBe("Atelier!2026");
+  });
+
+  it("never renders the demo password as visible text (security)", async () => {
+    renderLogin(mockFetch({}));
+    await waitFor(() => expect(screen.getByTestId("demo-super")).toBeInTheDocument());
+    // The shared password must not appear anywhere in the visible DOM text.
+    expect(document.body.textContent).not.toContain("Atelier!2026");
+  });
+
+  it("surfaces an error if a demo sign-in fails (negative)", async () => {
+    renderLogin(mockFetch({ loginFails: true }));
+    await userEvent.click(await screen.findByTestId("demo-user"));
+    expect(await screen.findByTestId("login-error")).toHaveTextContent("Invalid credentials");
+  });
 });

@@ -10,6 +10,14 @@ interface Props {
   onRequestGoogle?: () => Promise<string>;
 }
 
+/** Seeded demo accounts (all share the seeded demo password). One-tap sign-in. */
+const DEMO_PASSWORD = "Atelier!2026";
+const DEMO_ACCOUNTS: ReadonlyArray<{ email: string; label: string; testid: string }> = [
+  { email: "super@atelier.demo", label: "Super admin", testid: "demo-super" },
+  { email: "admin@react-summit.demo", label: "Tenant admin", testid: "demo-admin" },
+  { email: "user@react-summit.demo", label: "Attendee", testid: "demo-user" },
+];
+
 export function LoginView({ fetchImpl = fetch, onRequestGoogle }: Props) {
   const { login, loginWithGoogle, error } = useAuth();
   const [email, setEmail] = useState("");
@@ -35,6 +43,21 @@ export function LoginView({ fetchImpl = fetch, onRequestGoogle }: Props) {
     setSubmitting(true);
     try {
       await login(email, password);
+    } catch {
+      // error surfaced via context
+    } finally {
+      setSubmitting(false);
+    }
+  };
+
+  /** One-tap demo sign-in: fill the fields (so the user sees who they are) and
+   *  authenticate immediately, without ever exposing the shared password. */
+  const signInAsDemo = async (demoEmail: string) => {
+    setEmail(demoEmail);
+    setPassword(DEMO_PASSWORD);
+    setSubmitting(true);
+    try {
+      await login(demoEmail, DEMO_PASSWORD);
     } catch {
       // error surfaced via context
     } finally {
@@ -110,12 +133,24 @@ export function LoginView({ fetchImpl = fetch, onRequestGoogle }: Props) {
         )}
 
         <div className="login-demo">
-          <strong>Demo accounts</strong> (password <code>Atelier!2026</code>):
-          <ul>
-            <li>super@atelier.demo — platform super-admin</li>
-            <li>admin@react-summit.demo — tenant admin</li>
-            <li>user@react-summit.demo — attendee</li>
-          </ul>
+          <strong>Demo accounts</strong>
+          <p className="login-demo-hint">
+            One-tap sign-in — no password needed.
+          </p>
+          <div className="login-demo-buttons">
+            {DEMO_ACCOUNTS.map((acct) => (
+              <Button
+                key={acct.email}
+                fillMode="outline"
+                onClick={() => void signInAsDemo(acct.email)}
+                disabled={submitting}
+                data-testid={acct.testid}
+                title={acct.email}
+              >
+                {acct.label}
+              </Button>
+            ))}
+          </div>
         </div>
       </div>
     </div>

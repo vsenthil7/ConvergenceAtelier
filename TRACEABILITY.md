@@ -39,12 +39,17 @@ _`(str)->list[float]` signature. Matchmaking is pure/synchronous over supplied p
 _Agenda draft scores each session against the theme, groups by track, and opens with the_
 _most on-theme track — a deterministic, explainable "AI draft" running keyless._
 
-### Module 3B — Frontend discovery UI ✅ VERIFIED (95 tests pass, exit 0)
-| R3.9 | Typed discovery client (similar/recommend/match) | `lib/discovery.ts` | `discovery.test.ts` | ✅ |
+### Module 3B — Frontend discovery UI ✅ VERIFIED (105 tests pass, exit 0)
+| R3.9 | Typed discovery client (similar/recommend/match/draft) | `lib/discovery.ts` | `discovery.test.ts` | ✅ |
 | R3.10 | Discover tab (all roles) + interest search | `App.tsx`, `components/DiscoveryView.tsx` | `App.test.tsx`, `DiscoveryView.test.tsx` | ✅ |
 | R3.11 | Ranked results grid with score badges + states | `components/DiscoveryView.tsx` | `DiscoveryView.test.tsx` | ✅ |
+| R3.13 | AI agenda-draft UI (event+theme → ordered, track-grouped running order) | `components/DiscoveryView.tsx`, `lib/discovery.ts` | `DiscoveryView.test.tsx`, `discovery.test.ts` | ✅ |
+| R3.14 | One-tap demo sign-in (no typing, password never shown) | `components/LoginView.tsx` | `LoginView.test.tsx` | ✅ |
 
-_Verified: 95 vitest tests pass, statements/lines 100%; `discovery.ts` 100% on all metrics._
+_Verified: 105 vitest tests pass, statements/lines 100%; `discovery.ts` 100% on all metrics._
+_R3.14 enhancement: demo accounts are now one-tap buttons that fill the email + seeded_
+_password and authenticate; the shared password is never rendered as visible text_
+_(asserted by a security test)._
 
 ## Sprint 2 — Auth, multi-tenancy, RBAC, Postgres, SSO, demo data
 
@@ -65,7 +70,7 @@ _Verified: 95 vitest tests pass, statements/lines 100%; `discovery.ts` 100% on a
 | R2.12 | Conflict/401/403 handlers | `api/errors.py` | `test_auth.py`, `test_events.py` | ✅ |
 | R2.13 | Demo seeder (idempotent) | `services/seed.py` | `test_seed.py` | ✅ |
 | R2.14 | DB-aware readiness `/api/ready` | `api/health.py` | `test_health.py` | ✅ |
-| R2.15 | Postgres persistence (prod) + Alembic migrations | `db/session.py`, `migrations/`, `docker-compose.yml`, `deploy/entrypoint.sh` | `alembic upgrade/downgrade` verified locally; Vultr deploy smoke ⬜ | 🟨 |
+| R2.15 | Postgres persistence (prod) + Alembic migrations | `db/session.py`, `migrations/`, `docker-compose.yml`, `deploy/entrypoint.sh` | `alembic upgrade/downgrade` local + **Vultr deploy smoke ✅** (`/api/ready` = db ok, 2 tenants, 5 users; both containers healthy on `45.77.52.54:8095`) | ✅ |
 
 _Verified via subprocess pytest: 95 passed, 100% coverage, exit 0. Pushed in this cycle._
 _Bcrypt note: uses the `bcrypt` library directly (passlib 1.7.4 is incompatible with_

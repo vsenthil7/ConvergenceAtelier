@@ -42,15 +42,15 @@ Backend ✅ done · Frontend ✅ done.
 - [x] Frontend unit (Vitest) + functional + negative + E2E (Playwright) — **84 tests pass, exit 0**
 **Verified:** frontend 84/84 (vitest), statements/lines 100%; e2e specs login-gated.
 
-## S2 — Auth, multi-tenancy, RBAC, SSO, demo data  🟨
-Module 2A backend ✅ · Module 2B frontend ✅ · Postgres (R2.15) ⬜ remaining.
+## S2 — Auth, multi-tenancy, RBAC, SSO, demo data  ✅
+Module 2A backend ✅ · Module 2B frontend ✅ · Postgres (R2.15) ✅ (deployed + smoke-verified on Vultr).
 - [x] 3-role model (super_admin → tenant_admin → user), Tenant + User models
 - [x] Email/password (JWT) + optional Google SSO; demo mode hides Google when unset
 - [x] RBAC + tenant isolation on events; scoped user management
 - [x] Demo seeder (2 tenants, 5 users), DB-aware `/api/ready`
 - [x] Backend **95 tests, 100% cov, `e978fbc`**
 - [x] Frontend login + AuthContext + role-aware nav + Users UI (**84 tests, exit 0**)
-- [~] Postgres persistence: compose on 5434 + Alembic migrations ✅ (upgrade/downgrade verified) · Vultr deploy smoke ⬜
+- [x] Postgres persistence: compose on 5434 + Alembic migrations · **Vultr deploy smoke ✅** (`/api/ready` db ok)
 
 ## S2b — Speakers, sessions, sponsors, multi-track  ⬜
 - [ ] Speaker/session/sponsor models + CRUD

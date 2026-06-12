@@ -25,6 +25,13 @@ export interface AttendeeMatch {
   b: AttendeeRef;
 }
 
+export interface AgendaSlot {
+  order: number;
+  relevance: number;
+  track: string;
+  session: AgendaSession;
+}
+
 const API_BASE = import.meta.env.VITE_API_BASE ?? "";
 
 async function request<T>(
@@ -83,6 +90,18 @@ export function matchAttendees(
   return request<AttendeeMatch[]>(
     "/api/discovery/match",
     { method: "POST", body: JSON.stringify({ attendees, limit }) },
+    fetchImpl,
+  );
+}
+
+export function draftAgenda(
+  eventId: string,
+  theme: string,
+  fetchImpl: typeof fetch = fetch,
+): Promise<AgendaSlot[]> {
+  return request<AgendaSlot[]>(
+    `/api/discovery/events/${eventId}/agenda-draft`,
+    { method: "POST", body: JSON.stringify({ theme }) },
     fetchImpl,
   );
 }

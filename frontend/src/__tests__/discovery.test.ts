@@ -1,5 +1,6 @@
 import { describe, it, expect, vi } from "vitest";
 import {
+  draftAgenda,
   matchAttendees,
   recommendForInterests,
   similarSessions,
@@ -81,5 +82,26 @@ describe("discovery api client", () => {
     await expect(matchAttendees([{ id: "1" }, { id: "2" }], 5, f)).rejects.toMatchObject({
       status: 403,
     });
+  });
+
+  it("posts the theme to the agenda-draft endpoint (functional)", async () => {
+    const spy = vi.fn(async () => ({
+      ok: true,
+      status: 200,
+      json: async () => [
+        { order: 0, relevance: 0.9, track: "Frontend", session: SESSION },
+      ],
+    }));
+    const out = await draftAgenda("e1", "frontend performance", spy as unknown as typeof fetch);
+    expect(out[0].order).toBe(0);
+    expect(out[0].track).toBe("Frontend");
+    expect(spy.mock.calls[0][0]).toContain("/api/discovery/events/e1/agenda-draft");
+    const init = spy.mock.calls[0][1] as RequestInit;
+    expect(JSON.parse(String(init.body))).toEqual({ theme: "frontend performance" });
+  });
+
+  it("propagates a 404 from agenda-draft with status (negative)", async () => {
+    const f = fetchReturning(404, { detail: "Event not found" }, false);
+    await expect(draftAgenda("missing", "x", f)).rejects.toMatchObject({ status: 404 });
   });
 });
