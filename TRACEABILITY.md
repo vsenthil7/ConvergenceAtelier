@@ -110,7 +110,14 @@ Each row lands GREEN independently with 100% coverage, git-first.
 | R7.4.5 | Frontend webinar client types + calls | ✅ |
 | R7.4.6 | Webinar panel on event page (seat counter + waitlist + stream + reminders) | ✅ |
 | R7.4.7 | Seed: demo webinar with capacity, reminders, registrations incl. waitlist | ✅ |
-| R7.5 | Linked/hybrid events: event-to-event links + cross-event session catalog | ⬜ |
+| R7.5 | Linked/hybrid events: event-to-event links + cross-event session catalog | 🟨 |
+| R7.5.1 | `EventLink` model (symmetric, tenant-scoped, unique pair) + migration | ⬜ |
+| R7.5.2 | LinkService: link/unlink + list linked events | ⬜ |
+| R7.5.3 | Combined cross-event session catalog (tagged by source event) | ⬜ |
+| R7.5.4 | REST `/events/{id}/links/*` + `/events/{id}/catalog` with RBAC | ⬜ |
+| R7.5.5 | Discovery spans linked events (recommend/agenda-draft) | ⬜ |
+| R7.5.6 | Frontend links client types + calls | ⬜ |
+| R7.5.7 | Linked-events panel (list + link/unlink + combined catalog) | ⬜ |
 | R7.6 | Type-aware AI drafts (judging schedule / promo timeline / workshop plan) | ⬜ |
 
 _R7.1 VERIFIED: backend `EventType` enum (conference/hackathon/webinar/meetup/workshop/_
