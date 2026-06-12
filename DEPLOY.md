@@ -75,3 +75,22 @@ docker compose up -d --build
   `telerik-license.txt` out of git (already gitignored).
 - `USE_MOCKS=true` is the default, so the demo needs no external API keys.
 - Backend runs internally on :8000; only nginx (:80 → host 8095) is exposed.
+
+## Removing the KendoReact “License key missing” banner
+The banner is cosmetic (nothing breaks without it) but it disappears once the
+license is **activated during the frontend Docker build**. The build now runs
+`kendo-ui-license activate` automatically whenever `TELERIK_LICENSE` is set, so:
+
+```bash
+cd /srv/convergence
+git pull origin main
+# Make the key available to THIS shell (so compose passes it as a build arg):
+export TELERIK_LICENSE="$(cat /root/telerik-license.txt)"
+# Rebuild WITHOUT cache for the frontend stage so activation re-runs:
+docker compose build --no-cache --build-arg TELERIK_LICENSE="$TELERIK_LICENSE" app
+docker compose up -d
+```
+
+If you rebuild without exporting `TELERIK_LICENSE`, the app still works but the
+trial banner returns. Verify activation in the build log: look for a line from
+`kendo-ui-license activate` (e.g. “Your license is valid”) during the frontend stage.

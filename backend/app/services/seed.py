@@ -80,22 +80,23 @@ async def seed_demo(session: AsyncSession) -> bool:
         session.add(event)
         await session.flush()
 
-        # Sessions are scheduled ON the event's opening day (not relative to now),
-        # so the Scheduler — which opens on the event start date — shows them.
+        # Sessions are scheduled ON the event's opening day at fixed clock hours
+        # (09:00–15:00), so the Scheduler — which opens on the event start date at
+        # the start of the working day — shows them in the default viewport.
         # Mode + media URLs demo the S7.2 online / hybrid / recording features.
-        day = event.starts_at
+        day = event.starts_at.replace(hour=9, minute=0, second=0, microsecond=0)
         agenda = [
-            ("Opening Keynote", "Main", "Jane Developer", 1, 2, SessionMode.HYBRID,
+            ("Opening Keynote", "Main", "Jane Developer", 0, 1, SessionMode.HYBRID,
              "https://stream.demo/keynote", "https://rec.demo/keynote"),
-            ("State of the Framework", "Main", "John Maintainer", 2, 3, SessionMode.IN_PERSON,
+            ("State of the Framework", "Main", "John Maintainer", 1, 2, SessionMode.IN_PERSON,
              "", "https://rec.demo/state"),
-            ("Performance Deep Dive", "Performance", "Ada Speed", 3, 4, SessionMode.IN_PERSON,
+            ("Performance Deep Dive", "Performance", "Ada Speed", 2, 3, SessionMode.IN_PERSON,
              "", ""),
-            ("Testing at Scale", "Quality", "Sam Tester", 4, 5, SessionMode.ONLINE,
+            ("Testing at Scale", "Quality", "Sam Tester", 3, 4, SessionMode.ONLINE,
              "https://stream.demo/testing", ""),
-            ("Accessibility Patterns", "Quality", "Lee A11y", 5, 6, SessionMode.IN_PERSON,
+            ("Accessibility Patterns", "Quality", "Lee A11y", 4, 5, SessionMode.IN_PERSON,
              "", "https://rec.demo/a11y"),
-            ("Closing Panel: The Road Ahead", "Main", "Community Panel", 6, 7, SessionMode.HYBRID,
+            ("Closing Panel: The Road Ahead", "Main", "Community Panel", 5, 6, SessionMode.HYBRID,
              "https://stream.demo/panel", ""),
         ]
         for title, track, speaker, start_h, end_h, mode, stream, rec in agenda:

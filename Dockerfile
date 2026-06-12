@@ -7,9 +7,15 @@ WORKDIR /app/frontend
 COPY frontend/package*.json ./
 RUN npm ci
 COPY frontend/ ./
-# Activate the Kendo trial license from the build secret / env, then build.
+# Activate the Kendo license from the build secret / env (if provided), then build.
+# When TELERIK_LICENSE is empty the activation is skipped and the app builds in
+# keyless trial mode (banner shown). The license string itself is never committed.
 ARG TELERIK_LICENSE=""
 ENV TELERIK_LICENSE=${TELERIK_LICENSE}
+RUN if [ -n "$TELERIK_LICENSE" ]; then \
+      echo "$TELERIK_LICENSE" > ./telerik-license.txt && \
+      npx kendo-ui-license activate || true ; \
+    fi
 RUN npm run build
 
 # ---- Stage 2: backend runtime ----
