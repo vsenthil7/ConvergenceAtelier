@@ -23,6 +23,7 @@ import {
 import { EventForm } from "./EventForm";
 import { HackathonPanel } from "./HackathonPanel";
 import { WebinarPanel } from "./WebinarPanel";
+import { LinkedEventsPanel } from "./LinkedEventsPanel";
 
 const MODE_LABEL: Record<SessionMode, string> = {
   in_person: "In person",
@@ -310,6 +311,14 @@ export function EventsView({ fetchImpl = fetch, newEventDefaults, canWrite = tru
           {selected.event_type === "webinar" && (
             <WebinarPanel eventId={selected.id} fetchImpl={fetchImpl} />
           )}
+
+          {/* Linked / hybrid events (S7.5) — available for every event type. */}
+          <LinkedEventsPanel
+            eventId={selected.id}
+            linkableEvents={events.map((e) => ({ id: e.id, name: e.name }))}
+            canManage={canWrite}
+            fetchImpl={fetchImpl}
+          />
 
           {/* On-demand recordings catalog (S7.2). */}
           {recordings.length > 0 && (

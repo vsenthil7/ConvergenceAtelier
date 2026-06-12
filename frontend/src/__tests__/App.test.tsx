@@ -82,6 +82,12 @@ function mockApi(s: Scenario): typeof fetch {
     if (url.includes("/webinar/reminders")) {
       return ok([]);
     }
+    if (url.includes("/links")) {
+      return ok([]);
+    }
+    if (url.includes("/catalog")) {
+      return ok([]);
+    }
     if (url.includes("/registration")) {
       return ok({ event_id: "e1", status: null });
     }

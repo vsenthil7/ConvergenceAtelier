@@ -153,15 +153,15 @@ not duplication).
   - R7.4.5 Frontend webinar client (status/waitlist/reminders types + calls) ✅
   - R7.4.6 Webinar panel on the event page (only when event_type=webinar): join/leave with live seat counter, waitlist position, stream link when live, reminder list ✅
   - R7.4.7 Seed: one demo webinar event (capacity + reminders in config, a stream URL) with some registrations incl. a waitlisted attendee ✅
-- [🟨] **S7.5 Linked / hybrid events** (IN PROGRESS): connect related events into a series — e.g. a physical conference linked to its online companion, or a multi-city tour. A symmetric event-to-event link, a combined cross-event session catalog, and discovery/recommendations that span the whole linked set. Composes over the shared event/session core; no Event-model fork. Backend + frontend 100%.
-  - R7.5.1 `EventLink` model (symmetric event↔event association, tenant-scoped, unique unordered pair, self-link rejected) + migration
-  - R7.5.2 LinkService: link/unlink two events (both must be in caller's tenant), list an event's linked events
-  - R7.5.3 Combined catalog: list all sessions across an event + its linked events (each tagged with its source event), ordered by start time
-  - R7.5.4 REST under `/api/events/{id}/links/*` (list links, link, unlink) + `GET /events/{id}/catalog` (cross-event sessions) with RBAC (admin links/unlinks; catalog readable by all in-scope)
-  - R7.5.5 Discovery spans linked events: recommend/agenda-draft can include sessions from linked events (reuse S3 embeddings)
-  - R7.5.6 Frontend links client (list/link/unlink + catalog types + calls)
-  - R7.5.7 Linked-events panel on the event page: linked-event list + link/unlink (admin) + a combined "Across this series" session catalog
-  - Seed: link the two demo conferences into a series so the catalog + panel are populated
+- [x] **S7.5 Linked / hybrid events** ✅: connect related events into a series — e.g. a physical conference linked to its online companion, or a multi-city tour. A symmetric event-to-event link, a combined cross-event session catalog, and discovery/recommendations that span the whole linked set. Composes over the shared event/session core; no Event-model fork. Backend ✅ (243 tests, 100% cov, migration verified) + frontend ✅ (192 tests, 100% lines, prod tsc clean).
+  - R7.5.1 `EventLink` model (symmetric event↔event association, tenant-scoped, unique unordered pair, self-link rejected) + migration ✅
+  - R7.5.2 LinkService: link/unlink two events (both must be in caller's tenant), list an event's linked events ✅
+  - R7.5.3 Combined catalog: list all sessions across an event + its linked events (each tagged with its source event), ordered by start time ✅
+  - R7.5.4 REST under `/api/events/{id}/links/*` (list links, link, unlink) + `GET /events/{id}/catalog` (cross-event sessions) with RBAC (admin links/unlinks; catalog readable by all in-scope) ✅
+  - R7.5.5 Discovery spans linked events: `recommend_across_links` ranks sessions from an event + all linked events (reuse S3 embeddings) ✅
+  - R7.5.6 Frontend links client (list/link/unlink + catalog types + calls) ✅
+  - R7.5.7 Linked-events panel on the event page: linked-event list + link/unlink (admin) + a combined "Across this series" session catalog ✅
+  - Seed: an online companion (HYBRID) linked to the flagship conference so the catalog + panel are populated ✅
 - [ ] **S7.6 Type-aware AI drafts**: agenda-draft variants per type (judging schedule / promo timeline / workshop plan). 100%.
 
 _Rationale recorded so future sprints stay disciplined: build types as composable modules

@@ -61,6 +61,12 @@ function makeFetch(initial: EventModel[]) {
     if (url.includes("/webinar/reminders")) {
       return { ok: true, status: 200, json: async () => [] };
     }
+    if (url.includes("/links")) {
+      return { ok: true, status: 200, json: async () => [] };
+    }
+    if (url.includes("/catalog")) {
+      return { ok: true, status: 200, json: async () => [] };
+    }
     if (url.includes("/participants")) {
       return { ok: true, status: 200, json: async () => [
         { user_id: "u1", email: "att@x.com", full_name: "Att Endee", status: "registered" },
@@ -368,5 +374,11 @@ describe("EventsView", () => {
     render(<EventsView fetchImpl={f} />);
     await screen.findByTestId("agenda");
     expect(screen.queryByTestId("webinar-panel")).not.toBeInTheDocument();
+  });
+
+  it("renders the linked-events panel for any selected event (S7.5 functional)", async () => {
+    const f = makeFetch([event1]);
+    render(<EventsView fetchImpl={f} />);
+    expect(await screen.findByTestId("linked-panel")).toBeInTheDocument();
   });
 });
