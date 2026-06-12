@@ -162,7 +162,13 @@ not duplication).
   - R7.5.6 Frontend links client (list/link/unlink + catalog types + calls) ✅
   - R7.5.7 Linked-events panel on the event page: linked-event list + link/unlink (admin) + a combined "Across this series" session catalog ✅
   - Seed: an online companion (HYBRID) linked to the flagship conference so the catalog + panel are populated ✅
-- [ ] **S7.6 Type-aware AI drafts**: agenda-draft variants per type (judging schedule / promo timeline / workshop plan). 100%.
+- [🟨] **S7.6 Type-aware AI drafts** (IN PROGRESS): the AI agenda-draft, specialised per event type. Instead of one generic running order, each type drafts the plan its organiser actually needs — a hackathon drafts a judging schedule, a webinar a promo timeline, a workshop a session plan, a conference a run-of-show. Reuses the S3 embedding engine (keyless in demo mode); no new model fork. Backend + frontend 100%.
+  - R7.6.1 PlanService: type-aware plan templates (milestones per event type) + relevance scoring of each milestone against a theme via the embedder
+  - R7.6.2 Plan timeline: schedule milestones across the event window (or lead-up window for promo) so each item carries a concrete target time
+  - R7.6.3 REST `POST /api/discovery/events/{id}/plan` (type-aware draft; falls back to a generic plan for conference/meetup) — authenticated, tenant-scoped
+  - R7.6.4 Frontend plan client (request + PlanItem types + call)
+  - R7.6.5 Type-aware plan panel on the event page: "Draft a {type} plan" button → ordered milestone list with target times + relevance, shown for every event type
+  - R7.6.6 Wire the four type templates: hackathon (registration→teams→build→submit→judging→awards), webinar (announce→promo→reminders→dry-run→go-live→follow-up), workshop (prereqs→materials→setup→run→feedback), conference/default (CFP→schedule→run-of-show→wrap)
 
 _Rationale recorded so future sprints stay disciplined: build types as composable modules
 over the shared event/session/registration core; never fork the Event model per type._
