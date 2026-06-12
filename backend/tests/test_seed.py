@@ -4,7 +4,8 @@ from __future__ import annotations
 from sqlalchemy import func, select
 
 from app.config import Settings
-from app.models.event import Event, Session, SessionMode
+from app.models.event import Event, EventType, Session, SessionMode
+from app.models.hackathon import Submission, Team
 from app.models.identity import Role, Tenant, User
 from app.services.seed import seed_demo
 
@@ -24,28 +25,52 @@ async def test_seed_creates_demo_data(db):
         )
     assert tenants == 2
     assert users == 5  # 1 super + 2 tenant-admins + 2 users
-    assert events == 2
-    assert sessions == 12  # 6 multi-track sessions per event
+    assert events == 3  # 2 conferences + 1 hackathon
+    assert sessions == 12  # 6 multi-track sessions per conference (hackathon has none)
     assert supers == 1
 
 
 async def test_seed_sessions_land_on_event_day(db):
-    """Sessions must be scheduled on their event's opening day so the Scheduler
-    (which opens on the event start date) renders them."""
+    """Conference sessions must be scheduled on their event's opening day so the
+    Scheduler (which opens on the event start date) renders them."""
     maker = db
     async with maker() as s:
         await seed_demo(s)
     async with maker() as s:
-        events = (await s.execute(select(Event))).scalars().all()
+        events = (
+            await s.execute(
+                select(Event).where(Event.event_type == EventType.CONFERENCE)
+            )
+        ).scalars().all()
         for event in events:
             rows = (
                 await s.execute(select(Session).where(Session.event_id == event.id))
             ).scalars().all()
-            assert rows, "each event should have sessions"
+            assert rows, "each conference should have sessions"
             for sess in rows:
                 assert sess.starts_at.date() == event.starts_at.date()
             # Multi-track: more than one distinct track present.
             assert len({r.track for r in rows}) >= 2
+
+
+async def test_seed_includes_demo_hackathon(db):
+    """S7.3: the seed adds one hackathon-typed event with teams + scored submissions."""
+    maker = db
+    async with maker() as s:
+        await seed_demo(s)
+    async with maker() as s:
+        hack = (
+            await s.execute(
+                select(Event).where(Event.event_type == EventType.HACKATHON)
+            )
+        ).scalar_one()
+        teams = (
+            await s.execute(select(Team).where(Team.event_id == hack.id))
+        ).scalars().all()
+        subs = (await s.execute(select(Submission))).scalars().all()
+    assert hack.config.get("max_team_size") == 5
+    assert {t.name for t in teams} == {"Falcons", "Eagles"}
+    assert len(subs) == 2
 
 
 async def test_seed_is_idempotent(db):

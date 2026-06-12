@@ -308,4 +308,24 @@ describe("EventsView", () => {
     expect(await screen.findByTestId("session-modes")).toBeInTheDocument();
     expect(screen.queryByTestId("recordings")).not.toBeInTheDocument();
   });
+
+  it("renders the hackathon panel for a hackathon-typed event (S7.3 functional)", async () => {
+    const hack: EventModel = {
+      ...event1,
+      id: "hk1",
+      name: "JS Hack",
+      event_type: "hackathon",
+      sessions: [],
+    };
+    const f = makeFetch([hack]);
+    render(<EventsView fetchImpl={f} />);
+    expect(await screen.findByTestId("hackathon-panel")).toBeInTheDocument();
+  });
+
+  it("does not render the hackathon panel for a conference event (S7.3 negative)", async () => {
+    const f = makeFetch([event1]);
+    render(<EventsView fetchImpl={f} />);
+    await screen.findByTestId("agenda");
+    expect(screen.queryByTestId("hackathon-panel")).not.toBeInTheDocument();
+  });
 });

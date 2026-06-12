@@ -135,16 +135,16 @@ not duplication).
   - R7.2.4 Frontend session client types + a recordings client call ✅
   - R7.2.5 Agenda shows a mode chip (online/in-person/hybrid) + ▶ recording link per talk ✅
   - R7.2.6 "Recordings" catalog panel on the event page (on-demand library) ✅
-- [🟨] **S7.3 Hackathon module** (IN PROGRESS): the hackathon feature set that hangs off `event_type=hackathon`. Teams, project submissions with repo/demo links + tracking states, judging rubric + scores, and a live leaderboard — all composable over the shared event/registration core. Backend + frontend 100%.
-  - R7.3.1 `Team` model (event-scoped, name, members via membership) + migration
-  - R7.3.2 `Submission` model (team-scoped: title, summary, repo_url, demo_url, status enum draft/submitted/disqualified) + migration
-  - R7.3.3 `Score` model (submission × judge × criterion → value) for the judging rubric + migration
-  - R7.3.4 HackathonService: create/list teams, join team, create/submit submission, record scores, compute leaderboard (sum/avg per submission, ranked)
-  - R7.3.5 REST API under `/api/events/{id}/hackathon/*` (teams, submissions, scores, leaderboard) with RBAC (attendee joins/submits; admin/judge scores; leaderboard readable by all in-scope)
-  - R7.3.6 Frontend hackathon client (teams/submissions/scores/leaderboard types + calls)
-  - R7.3.7 Hackathon panel on the event page (only when event_type=hackathon): team list + my submission form + submit action
-  - R7.3.8 Live leaderboard (Kendo Grid) ranking submissions by total score
-  - Seed: one demo hackathon event with 2 teams, submissions, and a couple of scores
+- [x] **S7.3 Hackathon module** ✅: the hackathon feature set that hangs off `event_type=hackathon`. Teams, project submissions with repo/demo links + tracking states, judging rubric + scores, and a live leaderboard — all composable over the shared event/registration core. Backend ✅ (198 tests, 100% cov, migration verified) + frontend ✅ (153 tests, 100% lines, prod tsc clean).
+  - R7.3.1 `Team` model (event-scoped, name, members via membership) + migration ✅
+  - R7.3.2 `Submission` model (team-scoped: title, summary, repo_url, demo_url, status enum draft/submitted/disqualified) + migration ✅
+  - R7.3.3 `Score` model (submission × judge × criterion → value) for the judging rubric + migration ✅
+  - R7.3.4 HackathonService: create/list teams, join team, create/submit submission, record scores, compute leaderboard (sum/avg per submission, ranked) ✅
+  - R7.3.5 REST API under `/api/events/{id}/hackathon/*` (teams, submissions, scores, leaderboard) with RBAC (attendee joins/submits; admin/judge scores; leaderboard readable by all in-scope) ✅
+  - R7.3.6 Frontend hackathon client (teams/submissions/scores/leaderboard types + calls) ✅
+  - R7.3.7 Hackathon panel on the event page (only when event_type=hackathon): team list + my submission form + submit action ✅
+  - R7.3.8 Live leaderboard (Kendo Grid) ranking submissions by total score ✅
+  - Seed: one demo hackathon event (React Summit Hack 2026) with 2 teams, 2 submissions, and judge scores ✅
 - [ ] **S7.4 Webinar module**: stream URL + provider, registration cap + waitlist (reuses S3b registration), recording link, reminder schedule. 100%.
 - [ ] **S7.5 Linked / hybrid events**: event-to-event links + cross-event session catalog; discovery spans linked events. 100%.
 - [ ] **S7.6 Type-aware AI drafts**: agenda-draft variants per type (judging schedule / promo timeline / workshop plan). 100%.

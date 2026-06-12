@@ -21,6 +21,7 @@ import {
   type SessionMode,
 } from "../lib/events";
 import { EventForm } from "./EventForm";
+import { HackathonPanel } from "./HackathonPanel";
 
 const MODE_LABEL: Record<SessionMode, string> = {
   in_person: "In person",
@@ -297,6 +298,11 @@ export function EventsView({ fetchImpl = fetch, newEventDefaults, canWrite = tru
                 <WeekView />
               </Scheduler>
             </>
+          )}
+
+          {/* Hackathon workspace (S7.3) — only for hackathon-typed events. */}
+          {selected.event_type === "hackathon" && (
+            <HackathonPanel eventId={selected.id} fetchImpl={fetchImpl} />
           )}
 
           {/* On-demand recordings catalog (S7.2). */}

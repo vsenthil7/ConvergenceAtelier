@@ -93,15 +93,15 @@ Each row lands GREEN independently with 100% coverage, git-first.
 | R7.2.4 | Frontend session/recordings client types + calls | ✅ |
 | R7.2.5 | Agenda mode chip + ▶ recording link per talk | ✅ |
 | R7.2.6 | "Recordings" catalog panel on the event page | ✅ |
-| R7.3 | Hackathon module: Team + Submission (repo/demo links) + judging rubric + leaderboard | 🟨 |
-| R7.3.1 | `Team` model (event-scoped) + membership + migration | ⬜ |
-| R7.3.2 | `Submission` model (repo/demo/summary + status enum) + migration | ⬜ |
-| R7.3.3 | `Score` model (submission × judge × criterion) + migration | ⬜ |
-| R7.3.4 | HackathonService: teams/join/submit/score + leaderboard compute | ⬜ |
-| R7.3.5 | REST API `/events/{id}/hackathon/*` with RBAC | ⬜ |
-| R7.3.6 | Frontend hackathon client types + calls | ⬜ |
-| R7.3.7 | Hackathon panel on event page (team list + submission form) | ⬜ |
-| R7.3.8 | Live leaderboard (Kendo Grid) ranked by score | ⬜ |
+| R7.3 | Hackathon module: Team + Submission (repo/demo links) + judging rubric + leaderboard | ✅ |
+| R7.3.1 | `Team` model (event-scoped) + membership + migration | ✅ |
+| R7.3.2 | `Submission` model (repo/demo/summary + status enum) + migration | ✅ |
+| R7.3.3 | `Score` model (submission × judge × criterion) + migration | ✅ |
+| R7.3.4 | HackathonService: teams/join/submit/score + leaderboard compute | ✅ |
+| R7.3.5 | REST API `/events/{id}/hackathon/*` with RBAC | ✅ |
+| R7.3.6 | Frontend hackathon client types + calls | ✅ |
+| R7.3.7 | Hackathon panel on event page (team list + submission form) | ✅ |
+| R7.3.8 | Live leaderboard (Kendo Grid) ranked by score | ✅ |
 | R7.4 | Webinar module: stream provider + registration cap/waitlist + recording + reminders | ⬜ |
 | R7.5 | Linked/hybrid events: event-to-event links + cross-event session catalog | ⬜ |
 | R7.6 | Type-aware AI drafts (judging schedule / promo timeline / workshop plan) | ⬜ |
