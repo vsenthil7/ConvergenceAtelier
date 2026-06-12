@@ -70,6 +70,18 @@ function mockApi(s: Scenario): typeof fetch {
     if (url.includes("/recordings")) {
       return ok([]);
     }
+    if (url.includes("/hackathon/teams") || url.includes("/hackathon/leaderboard")) {
+      return ok([]);
+    }
+    if (url.includes("/webinar/status")) {
+      return ok({
+        event_id: "e1", capacity: 0, registered_count: 0, waitlisted_count: 0,
+        seats_left: null, my_state: null, stream_url: "",
+      });
+    }
+    if (url.includes("/webinar/reminders")) {
+      return ok([]);
+    }
     if (url.includes("/registration")) {
       return ok({ event_id: "e1", status: null });
     }

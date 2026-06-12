@@ -40,6 +40,27 @@ function makeFetch(initial: EventModel[]) {
       const recs = (store[0]?.sessions ?? []).filter((s) => s.recording_url);
       return { ok: true, status: 200, json: async () => recs };
     }
+    if (url.includes("/hackathon/teams") || url.includes("/hackathon/leaderboard")) {
+      return { ok: true, status: 200, json: async () => [] };
+    }
+    if (url.includes("/webinar/status")) {
+      return {
+        ok: true,
+        status: 200,
+        json: async () => ({
+          event_id: store[0]?.id ?? "e1",
+          capacity: 0,
+          registered_count: 0,
+          waitlisted_count: 0,
+          seats_left: null,
+          my_state: null,
+          stream_url: "",
+        }),
+      };
+    }
+    if (url.includes("/webinar/reminders")) {
+      return { ok: true, status: 200, json: async () => [] };
+    }
     if (url.includes("/participants")) {
       return { ok: true, status: 200, json: async () => [
         { user_id: "u1", email: "att@x.com", full_name: "Att Endee", status: "registered" },
@@ -327,5 +348,25 @@ describe("EventsView", () => {
     render(<EventsView fetchImpl={f} />);
     await screen.findByTestId("agenda");
     expect(screen.queryByTestId("hackathon-panel")).not.toBeInTheDocument();
+  });
+
+  it("renders the webinar panel for a webinar-typed event (S7.4 functional)", async () => {
+    const web: EventModel = {
+      ...event1,
+      id: "wb1",
+      name: "Vue Webinar",
+      event_type: "webinar",
+      sessions: [],
+    };
+    const f = makeFetch([web]);
+    render(<EventsView fetchImpl={f} />);
+    expect(await screen.findByTestId("webinar-panel")).toBeInTheDocument();
+  });
+
+  it("does not render the webinar panel for a conference event (S7.4 negative)", async () => {
+    const f = makeFetch([event1]);
+    render(<EventsView fetchImpl={f} />);
+    await screen.findByTestId("agenda");
+    expect(screen.queryByTestId("webinar-panel")).not.toBeInTheDocument();
   });
 });

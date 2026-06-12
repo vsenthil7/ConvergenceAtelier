@@ -145,14 +145,14 @@ not duplication).
   - R7.3.7 Hackathon panel on the event page (only when event_type=hackathon): team list + my submission form + submit action ✅
   - R7.3.8 Live leaderboard (Kendo Grid) ranking submissions by total score ✅
   - Seed: one demo hackathon event (React Summit Hack 2026) with 2 teams, 2 submissions, and judge scores ✅
-- [🟨] **S7.4 Webinar module** (IN PROGRESS): the webinar feature set that hangs off `event_type=webinar`. A capacity cap with automatic waitlist + promotion (built on S3b registration), the live stream + recording URLs (reuses S7.2 session media), and a reminder schedule — driven by the event `config`. Backend + frontend 100%.
-  - R7.4.1 Extend `EventRegistration` with a `WAITLISTED` status + migration (capacity overflow goes to waitlist)
-  - R7.4.2 WebinarService: capacity-aware register (REGISTERED until cap, then WAITLISTED), cancel auto-promotes the head of the waitlist, capacity/seat-count helper reading `config.capacity`
-  - R7.4.3 REST: webinar-aware register/cancel reuse the events endpoints; add `GET /events/{id}/webinar/status` (capacity, registered_count, waitlisted_count, my_state) + `GET …/webinar/waitlist` (admin)
-  - R7.4.4 Reminder schedule: compute reminder offsets from `config.reminders` (e.g. ["24h","1h"]) → `GET …/webinar/reminders` returns absolute send times relative to event start
-  - R7.4.5 Frontend webinar client (status/waitlist/reminders types + calls)
-  - R7.4.6 Webinar panel on the event page (only when event_type=webinar): join/leave with live seat counter, waitlist position, stream link when live, reminder list
-  - R7.4.7 Seed: one demo webinar event (capacity + reminders in config, a stream URL) with some registrations incl. a waitlisted attendee
+- [x] **S7.4 Webinar module** ✅: the webinar feature set that hangs off `event_type=webinar`. A capacity cap with automatic waitlist + promotion (built on S3b registration), the live stream + recording URLs (reuses S7.2 session media), and a reminder schedule — driven by the event `config`. Backend ✅ (222 tests, 100% cov, migration verified) + frontend ✅ (171 tests, 100% lines, prod tsc clean).
+  - R7.4.1 Extend `EventRegistration` with a `WAITLISTED` status + migration (capacity overflow goes to waitlist) ✅
+  - R7.4.2 WebinarService: capacity-aware register (REGISTERED until cap, then WAITLISTED), cancel auto-promotes the head of the waitlist, capacity/seat-count helper reading `config.capacity` ✅
+  - R7.4.3 REST: `GET /events/{id}/webinar/status` + capacity-aware register/cancel + `GET …/webinar/waitlist` (admin) ✅
+  - R7.4.4 Reminder schedule: compute reminder offsets from `config.reminders` (e.g. ["24h","1h"]) → `GET …/webinar/reminders` returns absolute send times ✅
+  - R7.4.5 Frontend webinar client (status/waitlist/reminders types + calls) ✅
+  - R7.4.6 Webinar panel on the event page (only when event_type=webinar): join/leave with live seat counter, waitlist position, stream link when live, reminder list ✅
+  - R7.4.7 Seed: one demo webinar event (capacity + reminders in config, a stream URL) with some registrations incl. a waitlisted attendee ✅
 - [ ] **S7.5 Linked / hybrid events**: event-to-event links + cross-event session catalog; discovery spans linked events. 100%.
 - [ ] **S7.6 Type-aware AI drafts**: agenda-draft variants per type (judging schedule / promo timeline / workshop plan). 100%.
 
