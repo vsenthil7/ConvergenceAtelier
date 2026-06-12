@@ -24,18 +24,20 @@ Status: ⬜ todo · 🟨 in progress · ✅ done
 
 | ID | Requirement | Code | Test | Status |
 |----|-------------|------|------|--------|
-| R1.1 | Event model is tz-aware | `backend/app/models/event.py` | `tests/test_event_service.py` | 🟨 |
-| R1.2 | Create event (validated) | `app/api/events.py` POST | `tests/test_events.py::test_create_and_get_event` | 🟨 |
-| R1.3 | List events | `app/api/events.py` GET | `tests/test_events.py::test_list_*` | 🟨 |
-| R1.4 | Get event by id | `app/api/events.py` GET id | `tests/test_events.py::test_create_and_get_event` | 🟨 |
-| R1.5 | Update event (partial) | `app/api/events.py` PATCH | `tests/test_events.py::test_update_event` | 🟨 |
-| R1.6 | Delete event | `app/api/events.py` DELETE | `tests/test_events.py::test_delete_event` | 🟨 |
-| R1.7 | Add agenda session | `app/api/events.py` POST sessions | `tests/test_events.py::test_add_session_to_event` | 🟨 |
-| R1.8 | Reject end<=start (neg) | `app/schemas/event.py` validator | `tests/test_events.py::*end_before_start*` | 🟨 |
-| R1.9 | Reject naive datetimes (neg) | `app/schemas/event.py` validator | `tests/test_events.py::*naive*` | 🟨 |
-| R1.10 | 404 on missing entity (neg) | `app/api/events.py` | `tests/test_events.py::*missing*` | 🟨 |
+| R1.1 | Event model is tz-aware | `backend/app/models/event.py` | `tests/test_event_service.py` | ✅ |
+| R1.2 | Create event (validated) | `app/api/events.py` POST | `tests/test_events.py::test_create_and_get_event` | ✅ |
+| R1.3 | List events | `app/api/events.py` GET | `tests/test_events.py::test_list_*` | ✅ |
+| R1.4 | Get event by id | `app/api/events.py` GET id | `tests/test_events.py::test_create_and_get_event` | ✅ |
+| R1.5 | Update event (partial) | `app/api/events.py` PATCH | `tests/test_events.py::test_update_event` | ✅ |
+| R1.6 | Delete event | `app/api/events.py` DELETE | `tests/test_events.py::test_delete_event` | ✅ |
+| R1.7 | Add agenda session | `app/api/events.py` POST sessions | `tests/test_events.py::test_add_session_to_event` | ✅ |
+| R1.8 | Reject end<=start (neg) | `app/schemas/event.py` validator | `tests/test_events.py::*end_before_start*` | ✅ |
+| R1.9 | Reject naive datetimes (neg) | `app/schemas/event.py` validator | `tests/test_events.py::*naive*` | ✅ |
+| R1.10 | 404 on missing entity (neg) | `app/api/errors.py` handler | `tests/test_events.py::*missing*` | ✅ |
 | R1.11 | Events Grid + Form UI | `frontend` (next) | `frontend` vitest + e2e | ⬜ |
 | R1.12 | Agenda on Scheduler | `frontend` (next) | `frontend` vitest + e2e | ⬜ |
 
-_Backend authored + pushed git-first; status flips to ✅ once pytest confirms 100%._
+**S1 backend verified (ran locally):** 33 tests pass, 100% coverage, exit 0, pushed `d86a379`.
+Frontend (R1.11–R1.12) is the remaining S1 work.
+
 _S2–S6 rows appended as each sprint begins._
