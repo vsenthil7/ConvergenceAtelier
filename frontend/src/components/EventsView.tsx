@@ -124,13 +124,15 @@ export function EventsView({ fetchImpl = fetch, newEventDefaults, canWrite = tru
       )}
 
       {!loading && !error && events.length > 0 && (
-        <Grid data={events} data-testid="events-grid">
-          <GridColumn field="name" title="Name" />
-          <GridColumn field="location" title="Location" />
-          <GridColumn field="starts_at" title="Starts" />
-          <GridColumn field="ends_at" title="Ends" />
-          <GridColumn title="Actions" cell={ActionsCell} />
-        </Grid>
+        <div data-testid="events-grid">
+          <Grid data={events} scrollable="none">
+            <GridColumn field="name" title="Name" />
+            <GridColumn field="location" title="Location" />
+            <GridColumn field="starts_at" title="Starts" />
+            <GridColumn field="ends_at" title="Ends" />
+            <GridColumn title="Actions" cell={ActionsCell} />
+          </Grid>
+        </div>
       )}
 
       {selected && (

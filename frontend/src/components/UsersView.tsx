@@ -90,12 +90,14 @@ export function UsersView({ fetchImpl = fetch }: Props) {
       )}
 
       {!loading && !error && (
-        <Grid data={users} data-testid="users-grid">
-          <GridColumn field="email" title="Email" />
-          <GridColumn field="full_name" title="Name" />
-          <GridColumn field="role" title="Role" />
-          <GridColumn field="auth_provider" title="Provider" />
-        </Grid>
+        <div data-testid="users-grid">
+          <Grid data={users} scrollable="none">
+            <GridColumn field="email" title="Email" />
+            <GridColumn field="full_name" title="Name" />
+            <GridColumn field="role" title="Role" />
+            <GridColumn field="auth_provider" title="Provider" />
+          </Grid>
+        </div>
       )}
 
       <div className="users-add" data-testid="users-add">
