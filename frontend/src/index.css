@@ -172,3 +172,11 @@ body {
 }
 .agenda-draft-title { font-weight: 600; flex: 1; }
 .agenda-draft-speaker { opacity: 0.75; font-size: 0.85rem; }
+
+/* --- participation (S3b) --- */
+.agenda-participation { display: flex; align-items: center; gap: 0.75rem; margin: 0.5rem 0 1rem; }
+.agenda-registered { color: #1a7f37; font-weight: 600; font-size: 0.9rem; }
+.agenda-roster { margin: 0.5rem 0 1rem; }
+.agenda-roster h4 { margin: 0 0 0.4rem; }
+.roster-list { margin: 0; padding-left: 1.1rem; font-size: 0.9rem; }
+.users-hint { color: #8a6d00; font-size: 0.85rem; margin: 0.25rem 0 0; }

@@ -9,7 +9,7 @@ function memoryStore(): TokenStore {
   return { get: () => t, set: (v) => { t = v; }, clear: () => { t = null; } };
 }
 
-function mockFetch(opts: { googleEnabled?: boolean; loginFails?: boolean }): typeof fetch {
+function mockFetch(opts: { googleEnabled?: boolean; loginFails?: boolean; registerFails?: boolean }): typeof fetch {
   return vi.fn(async (url: string, init?: RequestInit) => {
     if (url.includes("/api/auth/config")) {
       return { ok: true, status: 200, json: async () => ({ google_enabled: !!opts.googleEnabled, google_client_id: "cid" }) };
@@ -17,6 +17,10 @@ function mockFetch(opts: { googleEnabled?: boolean; loginFails?: boolean }): typ
     if (url.includes("/api/auth/login")) {
       if (opts.loginFails) return { ok: false, status: 401, json: async () => ({ detail: "Invalid credentials" }) };
       return { ok: true, status: 200, json: async () => ({ access_token: "t", token_type: "bearer" }) };
+    }
+    if (url.includes("/api/auth/register")) {
+      if (opts.registerFails) return { ok: false, status: 409, json: async () => ({ detail: "User already exists" }) };
+      return { ok: true, status: 201, json: async () => ({ access_token: "r", token_type: "bearer" }) };
     }
     if (url.includes("/api/auth/google")) {
       return { ok: true, status: 200, json: async () => ({ access_token: "g", token_type: "bearer" }) };
@@ -106,5 +110,39 @@ describe("LoginView", () => {
     renderLogin(mockFetch({ loginFails: true }));
     await userEvent.click(await screen.findByTestId("demo-user"));
     expect(await screen.findByTestId("login-error")).toHaveTextContent("Invalid credentials");
+  });
+
+  it("toggles to the register panel and self-registers (functional)", async () => {
+    renderLogin(mockFetch({}));
+    await userEvent.click(await screen.findByTestId("toggle-register"));
+    // register-only fields appear
+    expect(screen.getByLabelText("register-name")).toBeInTheDocument();
+    expect(screen.getByLabelText("register-tenant")).toBeInTheDocument();
+    await userEvent.type(screen.getByLabelText("login-email"), "new@x.com");
+    await userEvent.type(screen.getByLabelText("login-password"), "Secret123!");
+    const submit = screen.getByTestId("register-submit");
+    expect(submit).not.toBeDisabled();
+    await userEvent.click(submit);
+    // demo buttons are hidden in register mode
+    expect(screen.queryByTestId("demo-super")).not.toBeInTheDocument();
+  });
+
+  it("keeps Create account disabled until email + 8-char password (negative)", async () => {
+    renderLogin(mockFetch({}));
+    await userEvent.click(await screen.findByTestId("toggle-register"));
+    const submit = screen.getByTestId("register-submit");
+    expect(submit).toBeDisabled();
+    await userEvent.type(screen.getByLabelText("login-email"), "new@x.com");
+    await userEvent.type(screen.getByLabelText("login-password"), "short");
+    expect(submit).toBeDisabled();
+  });
+
+  it("shows an error when self-registration fails (negative)", async () => {
+    renderLogin(mockFetch({ registerFails: true }));
+    await userEvent.click(await screen.findByTestId("toggle-register"));
+    await userEvent.type(screen.getByLabelText("login-email"), "dupe@x.com");
+    await userEvent.type(screen.getByLabelText("login-password"), "Secret123!");
+    await userEvent.click(screen.getByTestId("register-submit"));
+    expect(await screen.findByTestId("login-error")).toHaveTextContent("User already exists");
   });
 });

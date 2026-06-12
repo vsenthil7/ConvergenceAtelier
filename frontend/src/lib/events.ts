@@ -109,3 +109,63 @@ export function addSession(
     fetchImpl,
   );
 }
+
+// ---------- registration / participation (S3b) ----------
+
+export type RegistrationStatus = "registered" | "cancelled";
+
+export interface MyRegistration {
+  event_id: string;
+  status: RegistrationStatus | null;
+}
+
+export interface Participant {
+  user_id: string;
+  email: string;
+  full_name: string;
+  status: RegistrationStatus;
+}
+
+export function registerForEvent(
+  eventId: string,
+  fetchImpl: typeof fetch = fetch,
+): Promise<{ status: RegistrationStatus }> {
+  return request<{ status: RegistrationStatus }>(
+    `/api/events/${eventId}/register`,
+    { method: "POST" },
+    fetchImpl,
+  );
+}
+
+export function cancelRegistration(
+  eventId: string,
+  fetchImpl: typeof fetch = fetch,
+): Promise<{ status: RegistrationStatus }> {
+  return request<{ status: RegistrationStatus }>(
+    `/api/events/${eventId}/register`,
+    { method: "DELETE" },
+    fetchImpl,
+  );
+}
+
+export function myRegistration(
+  eventId: string,
+  fetchImpl: typeof fetch = fetch,
+): Promise<MyRegistration> {
+  return request<MyRegistration>(
+    `/api/events/${eventId}/registration`,
+    { method: "GET" },
+    fetchImpl,
+  );
+}
+
+export function eventParticipants(
+  eventId: string,
+  fetchImpl: typeof fetch = fetch,
+): Promise<Participant[]> {
+  return request<Participant[]>(
+    `/api/events/${eventId}/participants`,
+    { method: "GET" },
+    fetchImpl,
+  );
+}

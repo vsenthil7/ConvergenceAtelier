@@ -77,6 +77,12 @@ export function UsersView({ fetchImpl = fetch }: Props) {
   };
 
   const canSubmit = email.length > 0 && password.length >= 8;
+  // Explain why the button is disabled, so it never looks broken (R3b.9).
+  const emailValid = /.+@.+\..+/.test(email);
+  const hints: string[] = [];
+  if (email.length === 0) hints.push("Enter an email");
+  else if (!emailValid) hints.push("Enter a valid email");
+  if (password.length < 8) hints.push("Password must be at least 8 characters");
 
   return (
     <section className="users-view">
@@ -145,6 +151,11 @@ export function UsersView({ fetchImpl = fetch }: Props) {
         {formError && (
           <p role="alert" data-testid="users-form-error">
             {formError}
+          </p>
+        )}
+        {hints.length > 0 && (
+          <p className="users-hint" data-testid="users-add-hint">
+            {hints.join(" · ")}
           </p>
         )}
         <Button

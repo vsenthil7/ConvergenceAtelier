@@ -67,21 +67,17 @@ Module 3A backend ✅ (132 tests) · Module 3B frontend ✅ (105 tests): discove
 - [x] Frontend discovery + agenda-draft UI 100% lines (**105 tests, exit 0**)
 - [ ] Matchmaking frontend view (attendee↔attendee) + Discovery E2E (Playwright)
 
-## S3b — Event registration & participation  🟨  ← NEW (addresses real product gaps)
-WHY: today users belong to a *tenant*, not an *event*; there is no self-signup, no
-"join event", no per-event attendee list, and seeded events have zero sessions so
-agenda/discovery look empty. This sprint adds the participation layer + fixes UX bugs.
+## S3b — Event registration & participation  ✅  (closes real product gaps)
+Backend ✅ (156 tests, 100% cov, `41c5ade`) · Frontend ✅ (125 tests, exit 0, 100% lines).
 - [x] **Public self-registration**: `POST /api/auth/register` (creates a `user` in a
-      chosen public tenant; rejects privileged-role self-grant) — backend ✅ (`41c5ade`)
+      chosen public tenant; rejects privileged-role self-grant) — backend + Login panel ✅
 - [x] **Event registration model**: `EventRegistration(event_id, user_id, status)` +
-      `POST /api/events/{id}/register`, `DELETE …/register`, `GET …/registration`, `GET …/participants` (RBAC: attendee self-registers; admin sees roster) — backend ✅
-- [x] **Seed real sessions** — 6 multi-track talks per demo event, scheduled ON the event day (fixes blank agenda) — backend ✅
-- [x] Backend unit + functional + negative **156 tests, 100% cov, exit 0** (`41c5ade`); Alembic upgrade/downgrade verified
-- [ ] **Event page participation (frontend)**: attendee sees "Register / Registered ✓" + status; admin sees roster (R3b.8)
-- [ ] **Self-registration panel on Login (frontend)** (R3b.7)
-- [ ] **Fix: Add-user button** — inline validation hints (email format, password ≥ 8) so the disabled state is explained (R3b.9)
-- [ ] **Fix: empty-agenda affordance** — "No sessions yet" message instead of a blank calendar (R3b.10)
-- [ ] Frontend 100% lines · trackers same cycle
+      register / cancel / my-status / participants endpoints (attendee self-serves; admin roster) ✅
+- [x] **Event page participation (frontend)**: Register / Registered ✓ toggle for attendees; roster for admins ✅
+- [x] **Seed real sessions** — 6 multi-track talks per demo event, scheduled ON the event day (fixes blank agenda) ✅
+- [x] **Fix: Add-user button** — inline validation hints explain the disabled state ✅
+- [x] **Fix: empty-agenda affordance** — "No sessions yet" message instead of a blank calendar ✅
+- [x] Backend 156 tests / 100% cov · Frontend 125 tests / 100% lines · prod tsc clean
 
 ## S4 — Real-time engagement  ⬜
 - [ ] Live Q&A, polls, session sentiment (websocket/SSE)

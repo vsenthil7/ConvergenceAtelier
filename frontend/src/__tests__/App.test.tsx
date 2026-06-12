@@ -64,6 +64,12 @@ function mockApi(s: Scenario): typeof fetch {
     if (url.includes("/api/discovery/recommend")) {
       return ok(s.recommendations ?? []);
     }
+    if (url.includes("/participants")) {
+      return ok([]);
+    }
+    if (url.includes("/registration")) {
+      return ok({ event_id: "e1", status: null });
+    }
     if (url.includes("/api/events")) {
       return ok(s.events ?? []);
     }

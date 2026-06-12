@@ -11,7 +11,9 @@ import {
   getMe,
   login as apiLogin,
   loginGoogle as apiLoginGoogle,
+  registerPublic as apiRegister,
   type CurrentUser,
+  type RegisterInput,
 } from "./auth";
 
 const TOKEN_KEY = "atelier.token";
@@ -55,6 +57,7 @@ export interface AuthState {
   error: string | null;
   login: (email: string, password: string) => Promise<void>;
   loginWithGoogle: (idToken: string) => Promise<void>;
+  register: (input: RegisterInput) => Promise<void>;
   logout: () => void;
 }
 
@@ -135,6 +138,21 @@ export function AuthProvider({ children, fetchImpl = fetch, store }: ProviderPro
     [fetchImpl, tokenStore],
   );
 
+  const register = useCallback(
+    async (input: RegisterInput) => {
+      setError(null);
+      try {
+        const { access_token } = await apiRegister(input, fetchImpl);
+        tokenStore.set(access_token);
+        setToken(access_token);
+      } catch (e) {
+        setError(e instanceof Error ? e.message : "Registration failed");
+        throw e;
+      }
+    },
+    [fetchImpl, tokenStore],
+  );
+
   const logout = useCallback(() => {
     tokenStore.clear();
     setToken(null);
@@ -142,8 +160,8 @@ export function AuthProvider({ children, fetchImpl = fetch, store }: ProviderPro
   }, [tokenStore]);
 
   const value = useMemo<AuthState>(
-    () => ({ user, token, loading, error, login, loginWithGoogle, logout }),
-    [user, token, loading, error, login, loginWithGoogle, logout],
+    () => ({ user, token, loading, error, login, loginWithGoogle, register, logout }),
+    [user, token, loading, error, login, loginWithGoogle, register, logout],
   );
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;

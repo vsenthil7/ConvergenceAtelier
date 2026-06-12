@@ -8,8 +8,14 @@ import {
   listEvents,
   createEvent,
   deleteEvent,
+  registerForEvent,
+  cancelRegistration,
+  myRegistration,
+  eventParticipants,
   type EventModel,
   type EventInput,
+  type Participant,
+  type RegistrationStatus,
 } from "../lib/events";
 import { EventForm } from "./EventForm";
 
@@ -34,6 +40,11 @@ export function EventsView({ fetchImpl = fetch, newEventDefaults, canWrite = tru
   const [error, setError] = useState<string | null>(null);
   const [showForm, setShowForm] = useState(false);
   const [selectedId, setSelectedId] = useState<string | null>(null);
+
+  // Participation state (S3b). canWrite distinguishes admin (roster) from attendee (register).
+  const [myStatus, setMyStatus] = useState<RegistrationStatus | null>(null);
+  const [roster, setRoster] = useState<Participant[]>([]);
+  const [regBusy, setRegBusy] = useState(false);
 
   const refresh = useCallback(async () => {
     setLoading(true);
@@ -65,6 +76,47 @@ export function EventsView({ fetchImpl = fetch, newEventDefaults, canWrite = tru
     await deleteEvent(id, fetchImpl);
     if (selectedId === id) setSelectedId(null);
     await refresh();
+  };
+
+  // Load participation context whenever the selected event changes.
+  const loadParticipation = useCallback(
+    async (eventId: string) => {
+      if (canWrite) {
+        try {
+          setRoster(await eventParticipants(eventId, fetchImpl));
+        } catch {
+          setRoster([]);
+        }
+      } else {
+        try {
+          const mine = await myRegistration(eventId, fetchImpl);
+          setMyStatus(mine.status);
+        } catch {
+          setMyStatus(null);
+        }
+      }
+    },
+    [canWrite, fetchImpl],
+  );
+
+  useEffect(() => {
+    if (selectedId) void loadParticipation(selectedId);
+  }, [selectedId, loadParticipation]);
+
+  const toggleRegistration = async () => {
+    if (!selectedId) return;
+    setRegBusy(true);
+    try {
+      if (myStatus === "registered") {
+        const res = await cancelRegistration(selectedId, fetchImpl);
+        setMyStatus(res.status);
+      } else {
+        const res = await registerForEvent(selectedId, fetchImpl);
+        setMyStatus(res.status);
+      }
+    } finally {
+      setRegBusy(false);
+    }
   };
 
   const ActionsCell = (props: GridCustomCellProps) => {
@@ -138,10 +190,51 @@ export function EventsView({ fetchImpl = fetch, newEventDefaults, canWrite = tru
       {selected && (
         <div className="agenda" data-testid="agenda">
           <h3>Agenda — {selected.name}</h3>
-          <Scheduler data={agendaItems} defaultDate={new Date(selected.starts_at)}>
-            <DayView />
-            <WeekView />
-          </Scheduler>
+
+          {/* Participation (S3b): attendee registers; admin sees the roster. */}
+          {!canWrite && (
+            <div className="agenda-participation" data-testid="participation">
+              <Button
+                themeColor={myStatus === "registered" ? "base" : "primary"}
+                onClick={() => void toggleRegistration()}
+                disabled={regBusy}
+                data-testid="register-toggle"
+              >
+                {myStatus === "registered" ? "Registered ✓ — Cancel" : "Register for this event"}
+              </Button>
+              {myStatus === "registered" && (
+                <span className="agenda-registered" data-testid="registered-badge">
+                  You&apos;re registered
+                </span>
+              )}
+            </div>
+          )}
+          {canWrite && (
+            <div className="agenda-roster" data-testid="roster">
+              <h4>Participants ({roster.length})</h4>
+              {roster.length === 0 ? (
+                <p data-testid="roster-empty">No one has registered yet.</p>
+              ) : (
+                <ul className="roster-list">
+                  {roster.map((p) => (
+                    <li key={p.user_id}>{p.full_name || p.email} — {p.email}</li>
+                  ))}
+                </ul>
+              )}
+            </div>
+          )}
+
+          {agendaItems.length === 0 ? (
+            <p data-testid="agenda-empty">
+              No sessions yet for this event.
+              {canWrite ? " Add talks to build the agenda." : " Check back soon."}
+            </p>
+          ) : (
+            <Scheduler data={agendaItems} defaultDate={new Date(selected.starts_at)}>
+              <DayView />
+              <WeekView />
+            </Scheduler>
+          )}
         </div>
       )}
 

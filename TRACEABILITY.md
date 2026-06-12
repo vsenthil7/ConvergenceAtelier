@@ -66,13 +66,16 @@ adds the participation layer and fixes the two UX bugs surfaced in review.
 | R3b.4 | Participant roster per event (admin) + my-status (attendee) | `services/registration_service.py`, `api/events.py` | `test_registration_api.py`, `test_api_helpers.py` | ✅ |
 | R3b.5 | Tenant isolation + RBAC on registration endpoints | `api/events.py` | `test_registration_api.py` | ✅ |
 | R3b.6 | Seed real multi-track sessions ON event day for demo | `services/seed.py` | `test_seed.py` | ✅ |
-| R3b.7 | Frontend: self-registration panel on Login | `components/LoginView.tsx`, `lib/auth.ts` | `LoginView.test.tsx`, `auth.test.ts` | ⬜ |
-| R3b.8 | Frontend: event register button + roster on event page | `components/EventsView.tsx`, `lib/events.ts` | `EventsView.test.tsx`, `events.test.ts` | ⬜ |
-| R3b.9 | Fix: Add-user inline validation (explain disabled state) | `components/UsersView.tsx` | `UsersView.test.tsx` | ⬜ |
-| R3b.10 | Fix: empty-agenda "no sessions yet" affordance | `components/EventsView.tsx` | `EventsView.test.tsx` | ⬜ |
+| R3b.7 | Frontend: self-registration panel on Login | `components/LoginView.tsx`, `lib/auth.ts`, `lib/AuthContext.tsx` | `LoginView.test.tsx`, `auth.test.ts`, `AuthContext.test.tsx` | ✅ |
+| R3b.8 | Frontend: event register button + roster on event page | `components/EventsView.tsx`, `lib/events.ts` | `EventsView.test.tsx`, `events.test.ts` | ✅ |
+| R3b.9 | Fix: Add-user inline validation (explain disabled state) | `components/UsersView.tsx` | `UsersView.test.tsx` | ✅ |
+| R3b.10 | Fix: empty-agenda "no sessions yet" affordance | `components/EventsView.tsx` | `EventsView.test.tsx` | ✅ |
 
-_Backend (R3b.1–R3b.6) VERIFIED: 156 tests, 100% coverage, exit 0 (`41c5ade`); Alembic_
-_upgrade+downgrade verified on the new `event_registrations` table. Frontend rows next._
+_Backend (R3b.1–R3b.6) VERIFIED: 156 tests, 100% coverage, exit 0 (`41c5ade`). Frontend_
+_(R3b.7–R3b.10) VERIFIED: 125 vitest tests, exit 0, statements/lines 100%; prod tsc clean._
+_Self-registration provisions a plain attendee in a chosen org; event page shows a_
+_Register/Registered✓ toggle for attendees and a participant roster for admins; add-user_
+_now explains its disabled state; empty agendas show a "no sessions yet" message._
 
 ## Sprint 7 — Event TYPES (product vision, planned)
 

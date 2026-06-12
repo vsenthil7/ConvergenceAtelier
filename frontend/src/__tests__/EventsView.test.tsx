@@ -27,8 +27,25 @@ const event1: EventModel = {
 /** Build a fetch mock with a mutable event store so create/delete reflect. */
 function makeFetch(initial: EventModel[]) {
   let store = [...initial];
+  let myStatus: string | null = null;
   const impl = vi.fn(async (url: string, init?: RequestInit) => {
     const method = init?.method ?? "GET";
+    if (url.includes("/participants")) {
+      return { ok: true, status: 200, json: async () => [
+        { user_id: "u1", email: "att@x.com", full_name: "Att Endee", status: "registered" },
+      ] };
+    }
+    if (url.includes("/registration")) {
+      return { ok: true, status: 200, json: async () => ({ event_id: "e1", status: myStatus }) };
+    }
+    if (url.includes("/register") && method === "POST") {
+      myStatus = "registered";
+      return { ok: true, status: 201, json: async () => ({ status: "registered" }) };
+    }
+    if (url.includes("/register") && method === "DELETE") {
+      myStatus = "cancelled";
+      return { ok: true, status: 200, json: async () => ({ status: "cancelled" }) };
+    }
     if (url.endsWith("/api/events") && method === "GET") {
       return { ok: true, status: 200, json: async () => store };
     }
@@ -128,5 +145,80 @@ describe("EventsView", () => {
     await screen.findByTestId("events-empty");
     await userEvent.click(screen.getByText("New event"));
     expect(screen.getByText("Create")).toBeInTheDocument();
+  });
+
+  it("admin sees the participant roster for the selected event (functional)", async () => {
+    const f = makeFetch([event1]);
+    render(<EventsView fetchImpl={f} canWrite={true} />);
+    expect(await screen.findByTestId("roster")).toBeInTheDocument();
+    expect(screen.getByText(/Att Endee/)).toBeInTheDocument();
+  });
+
+  it("attendee registers and then cancels (functional)", async () => {
+    const f = makeFetch([event1]);
+    render(<EventsView fetchImpl={f} canWrite={false} />);
+    const toggle = await screen.findByTestId("register-toggle");
+    expect(toggle).toHaveTextContent("Register for this event");
+    await userEvent.click(toggle);
+    await waitFor(() => expect(screen.getByTestId("registered-badge")).toBeInTheDocument());
+    // now registered → button offers cancel
+    await userEvent.click(screen.getByTestId("register-toggle"));
+    await waitFor(() =>
+      expect(screen.getByTestId("register-toggle")).toHaveTextContent("Register for this event"),
+    );
+  });
+
+  it("attendee does not see the admin roster (role-aware negative)", async () => {
+    const f = makeFetch([event1]);
+    render(<EventsView fetchImpl={f} canWrite={false} />);
+    await screen.findByTestId("participation");
+    expect(screen.queryByTestId("roster")).not.toBeInTheDocument();
+  });
+
+  it("shows a no-sessions affordance for an event with empty agenda (functional)", async () => {
+    const emptyAgenda: EventModel = { ...event1, id: "e3", name: "Empty", sessions: [] };
+    const f = makeFetch([emptyAgenda]);
+    render(<EventsView fetchImpl={f} canWrite={true} />);
+    expect(await screen.findByTestId("agenda-empty")).toBeInTheDocument();
+  });
+
+  it("admin roster shows an empty message when no one registered (functional)", async () => {
+    // roster endpoint returns [] for this event
+    const f = vi.fn(async (url: string, init?: RequestInit) => {
+      const method = init?.method ?? "GET";
+      if (url.includes("/participants")) return { ok: true, status: 200, json: async () => [] };
+      if (url.endsWith("/api/events") && method === "GET")
+        return { ok: true, status: 200, json: async () => [event1] };
+      return { ok: false, status: 404, json: async () => ({ detail: "nope" }) };
+    }) as unknown as typeof fetch;
+    render(<EventsView fetchImpl={f} canWrite={true} />);
+    expect(await screen.findByTestId("roster-empty")).toBeInTheDocument();
+  });
+
+  it("tolerates a participation load failure without crashing (negative)", async () => {
+    // events load OK, but participants endpoint errors → roster falls back to empty
+    const f = vi.fn(async (url: string, init?: RequestInit) => {
+      const method = init?.method ?? "GET";
+      if (url.includes("/participants")) return { ok: false, status: 500, json: async () => ({ detail: "x" }) };
+      if (url.endsWith("/api/events") && method === "GET")
+        return { ok: true, status: 200, json: async () => [event1] };
+      return { ok: false, status: 404, json: async () => ({ detail: "nope" }) };
+    }) as unknown as typeof fetch;
+    render(<EventsView fetchImpl={f} canWrite={true} />);
+    expect(await screen.findByTestId("roster-empty")).toBeInTheDocument();
+  });
+
+  it("tolerates an attendee status load failure (negative)", async () => {
+    const f = vi.fn(async (url: string, init?: RequestInit) => {
+      const method = init?.method ?? "GET";
+      if (url.includes("/registration")) return { ok: false, status: 500, json: async () => ({ detail: "x" }) };
+      if (url.endsWith("/api/events") && method === "GET")
+        return { ok: true, status: 200, json: async () => [event1] };
+      return { ok: false, status: 404, json: async () => ({ detail: "nope" }) };
+    }) as unknown as typeof fetch;
+    render(<EventsView fetchImpl={f} canWrite={false} />);
+    const toggle = await screen.findByTestId("register-toggle");
+    // status unknown → defaults to the register affordance
+    expect(toggle).toHaveTextContent("Register for this event");
   });
 });

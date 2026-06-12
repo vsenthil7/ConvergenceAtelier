@@ -6,6 +6,7 @@ import {
   listUsers,
   login,
   loginGoogle,
+  registerPublic,
 } from "../lib/auth";
 
 function fetchReturning(status: number, body: unknown, ok = status < 400): typeof fetch {
@@ -73,5 +74,28 @@ describe("auth api client", () => {
   it("attaches status code to the thrown error (negative)", async () => {
     const f = fetchReturning(403, { detail: "Forbidden" }, false);
     await expect(listUsers("tok", f)).rejects.toMatchObject({ status: 403 });
+  });
+
+  it("posts a public self-registration and returns a token (functional)", async () => {
+    const spy = vi.fn(async () => ({
+      ok: true,
+      status: 201,
+      json: async () => ({ access_token: "newtok", token_type: "bearer" }),
+    }));
+    const out = await registerPublic(
+      { email: "new@x.com", full_name: "New", password: "Secret123!", tenant_slug: "react-summit" },
+      spy as unknown as typeof fetch,
+    );
+    expect(out.access_token).toBe("newtok");
+    expect(spy.mock.calls[0][0]).toContain("/api/auth/register");
+    const init = spy.mock.calls[0][1] as RequestInit;
+    expect(JSON.parse(String(init.body)).tenant_slug).toBe("react-summit");
+  });
+
+  it("propagates a registration conflict with status (negative)", async () => {
+    const f = fetchReturning(409, { detail: "User already exists" }, false);
+    await expect(
+      registerPublic({ email: "dupe@x.com", password: "Secret123!", tenant_slug: "react-summit" }, f),
+    ).rejects.toMatchObject({ status: 409 });
   });
 });

@@ -19,11 +19,16 @@ const DEMO_ACCOUNTS: ReadonlyArray<{ email: string; label: string; testid: strin
 ];
 
 export function LoginView({ fetchImpl = fetch, onRequestGoogle }: Props) {
-  const { login, loginWithGoogle, error } = useAuth();
+  const { login, loginWithGoogle, register, error } = useAuth();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [submitting, setSubmitting] = useState(false);
   const [config, setConfig] = useState<AuthConfig | null>(null);
+
+  // Self-registration panel (R3b.7).
+  const [mode, setMode] = useState<"signin" | "register">("signin");
+  const [regName, setRegName] = useState("");
+  const [regTenant, setRegTenant] = useState("react-summit");
 
   useEffect(() => {
     let cancelled = false;
@@ -78,11 +83,34 @@ export function LoginView({ fetchImpl = fetch, onRequestGoogle }: Props) {
     }
   };
 
+  const submitRegister = async () => {
+    setSubmitting(true);
+    try {
+      await register({
+        email,
+        full_name: regName,
+        password,
+        tenant_slug: regTenant,
+      });
+    } catch {
+      // error surfaced via context
+    } finally {
+      setSubmitting(false);
+    }
+  };
+
+  const canRegister =
+    /.+@.+\..+/.test(email) && password.length >= 8 && regTenant.length > 0 && !submitting;
+
   return (
     <div className="login-view">
       <div className="login-card">
         <h1>Convergence Atelier</h1>
-        <p className="login-sub">Sign in to your organiser workspace</p>
+        <p className="login-sub">
+          {mode === "signin"
+            ? "Sign in to your organiser workspace"
+            : "Create an attendee account"}
+        </p>
 
         <label>
           Email
@@ -95,6 +123,31 @@ export function LoginView({ fetchImpl = fetch, onRequestGoogle }: Props) {
           />
         </label>
 
+        {mode === "register" && (
+          <>
+            <label>
+              Full name
+              <Input
+                value={regName}
+                onChange={(e) => setRegName(String(e.value))}
+                aria-label="register-name"
+              />
+            </label>
+            <label>
+              Organisation
+              <select
+                aria-label="register-tenant"
+                value={regTenant}
+                onChange={(e) => setRegTenant(e.target.value)}
+                className="k-input k-input-md k-rounded-md k-input-solid"
+              >
+                <option value="react-summit">React Summit</option>
+                <option value="vue-conf">Vue Conf</option>
+              </select>
+            </label>
+          </>
+        )}
+
         <label>
           Password
           <Input
@@ -102,7 +155,7 @@ export function LoginView({ fetchImpl = fetch, onRequestGoogle }: Props) {
             value={password}
             onChange={(e) => setPassword(String(e.value))}
             aria-label="login-password"
-            autoComplete="current-password"
+            autoComplete={mode === "signin" ? "current-password" : "new-password"}
           />
         </label>
 
@@ -112,16 +165,38 @@ export function LoginView({ fetchImpl = fetch, onRequestGoogle }: Props) {
           </p>
         )}
 
+        {mode === "signin" ? (
+          <Button
+            themeColor="primary"
+            onClick={() => void submit()}
+            disabled={submitting || !email || !password}
+            data-testid="login-submit"
+          >
+            Sign in
+          </Button>
+        ) : (
+          <Button
+            themeColor="primary"
+            onClick={() => void submitRegister()}
+            disabled={!canRegister}
+            data-testid="register-submit"
+          >
+            Create account
+          </Button>
+        )}
+
         <Button
-          themeColor="primary"
-          onClick={() => void submit()}
-          disabled={submitting || !email || !password}
-          data-testid="login-submit"
+          fillMode="flat"
+          onClick={() => setMode(mode === "signin" ? "register" : "signin")}
+          disabled={submitting}
+          data-testid="toggle-register"
         >
-          Sign in
+          {mode === "signin"
+            ? "New here? Create an account"
+            : "Already have an account? Sign in"}
         </Button>
 
-        {config?.google_enabled && (
+        {config?.google_enabled && mode === "signin" && (
           <Button
             fillMode="outline"
             onClick={() => void handleGoogle()}
@@ -132,26 +207,28 @@ export function LoginView({ fetchImpl = fetch, onRequestGoogle }: Props) {
           </Button>
         )}
 
-        <div className="login-demo">
-          <strong>Demo accounts</strong>
-          <p className="login-demo-hint">
-            One-tap sign-in — no password needed.
-          </p>
-          <div className="login-demo-buttons">
-            {DEMO_ACCOUNTS.map((acct) => (
-              <Button
-                key={acct.email}
-                fillMode="outline"
-                onClick={() => void signInAsDemo(acct.email)}
-                disabled={submitting}
-                data-testid={acct.testid}
-                title={acct.email}
-              >
-                {acct.label}
-              </Button>
-            ))}
+        {mode === "signin" && (
+          <div className="login-demo">
+            <strong>Demo accounts</strong>
+            <p className="login-demo-hint">
+              One-tap sign-in — no password needed.
+            </p>
+            <div className="login-demo-buttons">
+              {DEMO_ACCOUNTS.map((acct) => (
+                <Button
+                  key={acct.email}
+                  fillMode="outline"
+                  onClick={() => void signInAsDemo(acct.email)}
+                  disabled={submitting}
+                  data-testid={acct.testid}
+                  title={acct.email}
+                >
+                  {acct.label}
+                </Button>
+              ))}
+            </div>
           </div>
-        </div>
+        )}
       </div>
     </div>
   );

@@ -94,6 +94,25 @@ describe("UsersView", () => {
     expect(screen.getByTestId("users-add-submit")).toBeDisabled();
   });
 
+  it("explains why the submit is disabled with inline hints (functional)", async () => {
+    const f = mockFetch({ users: [] });
+    renderUsers(f);
+    await screen.findByTestId("users-add");
+    // empty -> prompts for an email
+    expect(screen.getByTestId("users-add-hint")).toHaveTextContent("Enter an email");
+    await userEvent.type(screen.getByLabelText("new-user-email"), "bad");
+    expect(screen.getByTestId("users-add-hint")).toHaveTextContent("valid email");
+    await userEvent.clear(screen.getByLabelText("new-user-email"));
+    await userEvent.type(screen.getByLabelText("new-user-email"), "ok@x.com");
+    await userEvent.type(screen.getByLabelText("new-user-password"), "short");
+    expect(screen.getByTestId("users-add-hint")).toHaveTextContent("at least 8 characters");
+    // valid -> hint disappears, button enabled
+    await userEvent.clear(screen.getByLabelText("new-user-password"));
+    await userEvent.type(screen.getByLabelText("new-user-password"), "password1");
+    expect(screen.queryByTestId("users-add-hint")).not.toBeInTheDocument();
+    expect(screen.getByTestId("users-add-submit")).not.toBeDisabled();
+  });
+
   it("surfaces a create conflict error (negative)", async () => {
     const f = mockFetch({ users: [], createFails: true });
     renderUsers(f);

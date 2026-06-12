@@ -5,6 +5,10 @@ import {
   updateEvent,
   deleteEvent,
   addSession,
+  registerForEvent,
+  cancelRegistration,
+  myRegistration,
+  eventParticipants,
   type EventModel,
 } from "../lib/events";
 
@@ -103,5 +107,40 @@ describe("events api client", () => {
       { name: "", location: "", description: "", starts_at: "", ends_at: "" },
       f,
     )).rejects.toThrow("Request failed: 422");
+  });
+
+  it("registers for an event (functional)", async () => {
+    const spy = vi.fn(async () => ({ ok: true, status: 201, json: async () => ({ status: "registered" }) }));
+    const out = await registerForEvent("e1", spy as unknown as typeof fetch);
+    expect(out.status).toBe("registered");
+    expect(spy.mock.calls[0][0]).toContain("/api/events/e1/register");
+    expect((spy.mock.calls[0][1] as RequestInit).method).toBe("POST");
+  });
+
+  it("cancels a registration (functional)", async () => {
+    const spy = vi.fn(async () => ({ ok: true, status: 200, json: async () => ({ status: "cancelled" }) }));
+    const out = await cancelRegistration("e1", spy as unknown as typeof fetch);
+    expect(out.status).toBe("cancelled");
+    expect((spy.mock.calls[0][1] as RequestInit).method).toBe("DELETE");
+  });
+
+  it("reads my registration status (functional)", async () => {
+    const f = fetchReturning(200, { event_id: "e1", status: "registered" });
+    const out = await myRegistration("e1", f);
+    expect(out.status).toBe("registered");
+  });
+
+  it("lists event participants (functional)", async () => {
+    const f = fetchReturning(200, [
+      { user_id: "u1", email: "a@x.com", full_name: "A", status: "registered" },
+    ]);
+    const out = await eventParticipants("e1", f);
+    expect(out).toHaveLength(1);
+    expect(out[0].email).toBe("a@x.com");
+  });
+
+  it("propagates a 404 when registering for an out-of-scope event (negative)", async () => {
+    const f = fetchReturning(404, { detail: "Event not found" }, false);
+    await expect(registerForEvent("missing", f)).rejects.toThrow("Event not found");
   });
 });
