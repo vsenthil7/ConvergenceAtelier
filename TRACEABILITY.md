@@ -118,13 +118,13 @@ Each row lands GREEN independently with 100% coverage, git-first.
 | R7.5.5 | Discovery spans linked events (recommend_across_links) | ✅ |
 | R7.5.6 | Frontend links client types + calls | ✅ |
 | R7.5.7 | Linked-events panel (list + link/unlink + combined catalog) | ✅ |
-| R7.6 | Type-aware AI drafts (judging schedule / promo timeline / workshop plan) | 🟨 |
-| R7.6.1 | PlanService: type-aware plan templates + theme relevance scoring | ⬜ |
-| R7.6.2 | Plan timeline: milestones scheduled across the event/lead-up window | ⬜ |
-| R7.6.3 | REST `POST /api/discovery/events/{id}/plan` (tenant-scoped) | ⬜ |
-| R7.6.4 | Frontend plan client types + call | ⬜ |
-| R7.6.5 | Type-aware plan panel (draft button + milestone list w/ times) | ⬜ |
-| R7.6.6 | Four type templates wired (hackathon/webinar/workshop/conference) | ⬜ |
+| R7.6 | Type-aware AI drafts (judging schedule / promo timeline / workshop plan) | ✅ |
+| R7.6.1 | PlanService: type-aware plan templates + theme relevance scoring | ✅ |
+| R7.6.2 | Plan timeline: milestones scheduled across the event/lead-up window | ✅ |
+| R7.6.3 | REST `POST /api/discovery/events/{id}/plan` (tenant-scoped) | ✅ |
+| R7.6.4 | Frontend plan client types + call | ✅ |
+| R7.6.5 | Type-aware plan panel (draft button + milestone list w/ times) | ✅ |
+| R7.6.6 | Four type templates wired (hackathon/webinar/workshop/conference) | ✅ |
 
 _R7.1 VERIFIED: backend `EventType` enum (conference/hackathon/webinar/meetup/workshop/_
 _hybrid) + JSON `config` on Event, type-aware create/update/read schemas, migration_

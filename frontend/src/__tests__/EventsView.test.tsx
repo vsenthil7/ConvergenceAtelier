@@ -381,4 +381,10 @@ describe("EventsView", () => {
     render(<EventsView fetchImpl={f} />);
     expect(await screen.findByTestId("linked-panel")).toBeInTheDocument();
   });
+
+  it("renders the type-aware plan panel for any selected event (S7.6 functional)", async () => {
+    const f = makeFetch([event1]);
+    render(<EventsView fetchImpl={f} />);
+    expect(await screen.findByTestId("plan-panel")).toBeInTheDocument();
+  });
 });

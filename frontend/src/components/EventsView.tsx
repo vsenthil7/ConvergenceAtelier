@@ -24,6 +24,7 @@ import { EventForm } from "./EventForm";
 import { HackathonPanel } from "./HackathonPanel";
 import { WebinarPanel } from "./WebinarPanel";
 import { LinkedEventsPanel } from "./LinkedEventsPanel";
+import { PlanPanel } from "./PlanPanel";
 
 const MODE_LABEL: Record<SessionMode, string> = {
   in_person: "In person",
@@ -317,6 +318,13 @@ export function EventsView({ fetchImpl = fetch, newEventDefaults, canWrite = tru
             eventId={selected.id}
             linkableEvents={events.map((e) => ({ id: e.id, name: e.name }))}
             canManage={canWrite}
+            fetchImpl={fetchImpl}
+          />
+
+          {/* Type-aware AI plan draft (S7.6) — available for every event type. */}
+          <PlanPanel
+            eventId={selected.id}
+            eventType={selected.event_type}
             fetchImpl={fetchImpl}
           />
 
