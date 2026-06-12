@@ -1,31 +1,33 @@
-import { useEffect, useState } from "react";
+import { useMemo, useState } from "react";
 import { AppBar, AppBarSection, AppBarSpacer } from "@progress/kendo-react-layout";
-import { getHealth, type HealthStatus } from "./lib/api";
+import { Button } from "@progress/kendo-react-buttons";
+import { Loader } from "@progress/kendo-react-indicators";
+import { AuthProvider, useAuth, type TokenStore } from "./lib/AuthContext";
+import { makeAuthedFetch } from "./lib/authedFetch";
+import { LoginView } from "./components/LoginView";
 import { EventsView } from "./components/EventsView";
+import { UsersView } from "./components/UsersView";
 
-type State =
-  | { kind: "idle" }
-  | { kind: "loading" }
-  | { kind: "ok"; data: HealthStatus }
-  | { kind: "error"; message: string };
+type Tab = "events" | "users";
 
-export function App({ fetchImpl = fetch }: { fetchImpl?: typeof fetch }) {
-  const [state, setState] = useState<State>({ kind: "idle" });
+const ROLE_LABEL: Record<string, string> = {
+  super_admin: "Super Admin",
+  tenant_admin: "Tenant Admin",
+  user: "Attendee",
+};
 
-  const check = async () => {
-    setState({ kind: "loading" });
-    try {
-      const data = await getHealth(fetchImpl);
-      setState({ kind: "ok", data });
-    } catch (e) {
-      setState({ kind: "error", message: e instanceof Error ? e.message : "Unknown error" });
-    }
-  };
+function Shell({ fetchImpl }: { fetchImpl: typeof fetch }) {
+  const { user, token, logout } = useAuth();
+  const [tab, setTab] = useState<Tab>("events");
 
-  useEffect(() => {
-    void check();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+  // Every data call carries the bearer token.
+  const authedFetch = useMemo(
+    () => makeAuthedFetch(token, fetchImpl),
+    [token, fetchImpl],
+  );
+
+  if (!user) return null; // guarded by the caller
+  const isAdmin = user.role === "super_admin" || user.role === "tenant_admin";
 
   return (
     <div className="atelier-shell">
@@ -34,24 +36,69 @@ export function App({ fetchImpl = fetch }: { fetchImpl?: typeof fetch }) {
           <strong>Convergence Atelier</strong>
         </AppBarSection>
         <AppBarSpacer />
+        <AppBarSection className="atelier-nav">
+          <Button
+            fillMode={tab === "events" ? "solid" : "flat"}
+            onClick={() => setTab("events")}
+            data-testid="nav-events"
+          >
+            Events
+          </Button>
+          {isAdmin && (
+            <Button
+              fillMode={tab === "users" ? "solid" : "flat"}
+              onClick={() => setTab("users")}
+              data-testid="nav-users"
+            >
+              Users
+            </Button>
+          )}
+        </AppBarSection>
+        <AppBarSpacer />
         <AppBarSection>
-          {state.kind === "ok" && (
-            <span className="atelier-tagline" data-testid="health-ok">
-              {state.data.service} · {state.data.mode}
-            </span>
-          )}
-          {state.kind === "error" && (
-            <span className="atelier-tagline" role="alert" data-testid="health-error">
-              backend offline
-            </span>
-          )}
+          <span className="atelier-whoami" data-testid="whoami">
+            {user.email} · {ROLE_LABEL[user.role] ?? user.role}
+          </span>
+          <Button fillMode="flat" onClick={logout} data-testid="logout">
+            Sign out
+          </Button>
         </AppBarSection>
       </AppBar>
 
       <main className="atelier-main">
-        <EventsView fetchImpl={fetchImpl} />
+        {tab === "events" && (
+          <EventsView fetchImpl={authedFetch} canWrite={user.role !== "user"} />
+        )}
+        {tab === "users" && isAdmin && <UsersView fetchImpl={authedFetch} />}
       </main>
     </div>
+  );
+}
+
+function Gate({ fetchImpl }: { fetchImpl: typeof fetch }) {
+  const { user, loading } = useAuth();
+
+  if (loading) {
+    return (
+      <div className="atelier-loading" data-testid="auth-loading">
+        <Loader type="infinite-spinner" />
+      </div>
+    );
+  }
+  if (!user) return <LoginView fetchImpl={fetchImpl} />;
+  return <Shell fetchImpl={fetchImpl} />;
+}
+
+interface AppProps {
+  fetchImpl?: typeof fetch;
+  store?: TokenStore;
+}
+
+export function App({ fetchImpl = fetch, store }: AppProps) {
+  return (
+    <AuthProvider fetchImpl={fetchImpl} store={store}>
+      <Gate fetchImpl={fetchImpl} />
+    </AuthProvider>
   );
 }
 

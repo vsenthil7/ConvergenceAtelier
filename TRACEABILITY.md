@@ -35,11 +35,15 @@ _Verified via subprocess pytest: 95 passed, 100% coverage, exit 0. Pushed in thi
 _Bcrypt note: uses the `bcrypt` library directly (passlib 1.7.4 is incompatible with_
 _bcrypt 5.x); long secrets are SHA-256 pre-hashed so no password is ever rejected._
 
-### Module 2B — Frontend login + role-aware UI  ⬜
-| R2.16 | Login screen (password + Google) | `frontend` (next) | vitest + e2e | ⬜ |
-| R2.17 | Auth context + token storage | `frontend` (next) | vitest | ⬜ |
-| R2.18 | Role-aware nav (admin/user views) | `frontend` (next) | vitest + e2e | ⬜ |
-| R2.19 | User management UI (admins) | `frontend` (next) | vitest + e2e | ⬜ |
+### Module 2B — Frontend login + role-aware UI  🟨 AUTHORED (awaiting `npm install` + verify)
+| R2.16 | Login screen (password + Google, demo creds shown) | `components/LoginView.tsx`, `lib/auth.ts` | `LoginView.test.tsx`, `auth.test.ts`, `e2e/auth.spec.ts` | 🟨 |
+| R2.17 | Auth context + token storage (localStorage) | `lib/AuthContext.tsx`, `lib/authedFetch.ts` | `AuthContext.test.tsx`, `authedFetch.test.ts` | 🟨 |
+| R2.18 | Role-aware nav (admin Users tab; attendee read-only) | `App.tsx`, `components/EventsView.tsx` | `App.test.tsx`, `e2e/auth.spec.ts` | 🟨 |
+| R2.19 | User management UI (list + create, scoped roles) | `components/UsersView.tsx` | `UsersView.test.tsx` | 🟨 |
+
+_2B uses KendoReact Inputs/Buttons/Grid/DropDownList/Layout. New package this module:_
+_`@progress/kendo-react-dropdowns`. Needs one `npm install` in frontend/ then `npm test`._
+_Auth token carried via `makeAuthedFetch` wrapper so the S1 events client stays unchanged._
 
 **Demo credentials (seeded):** super@atelier.demo · admin@react-summit.demo ·
 admin@vue-conf.demo · user@react-summit.demo — all password `Atelier!2026`.

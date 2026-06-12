@@ -18,6 +18,7 @@
     "@progress/kendo-react-buttons": "^11.0.0",
     "@progress/kendo-react-dateinputs": "^11.0.0",
     "@progress/kendo-react-dialogs": "^11.0.0",
+    "@progress/kendo-react-dropdowns": "^11.0.0",
     "@progress/kendo-react-grid": "^11.0.0",
     "@progress/kendo-react-indicators": "^11.0.0",
     "@progress/kendo-react-inputs": "^11.0.0",

@@ -17,6 +17,8 @@ interface Deps {
   fetchImpl?: typeof fetch;
   /** Sensible default window for the new-event form (overridable for tests). */
   newEventDefaults?: Partial<EventInput>;
+  /** When false, hides create/delete controls (attendee role). Defaults true. */
+  canWrite?: boolean;
 }
 
 function defaultWindow(): Partial<EventInput> {
@@ -26,7 +28,7 @@ function defaultWindow(): Partial<EventInput> {
   return { starts_at: start.toISOString(), ends_at: end.toISOString() };
 }
 
-export function EventsView({ fetchImpl = fetch, newEventDefaults }: Deps) {
+export function EventsView({ fetchImpl = fetch, newEventDefaults, canWrite = true }: Deps) {
   const [events, setEvents] = useState<EventModel[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -76,14 +78,16 @@ export function EventsView({ fetchImpl = fetch, newEventDefaults }: Deps) {
         >
           View agenda
         </Button>
-        <Button
-          fillMode="flat"
-          themeColor="error"
-          onClick={() => void handleDelete(row.id)}
-          aria-label={`delete-${row.id}`}
-        >
-          Delete
-        </Button>
+        {canWrite && (
+          <Button
+            fillMode="flat"
+            themeColor="error"
+            onClick={() => void handleDelete(row.id)}
+            aria-label={`delete-${row.id}`}
+          >
+            Delete
+          </Button>
+        )}
       </td>
     );
   };
@@ -101,9 +105,11 @@ export function EventsView({ fetchImpl = fetch, newEventDefaults }: Deps) {
     <section className="events-view">
       <header className="events-view-header">
         <h2>Events</h2>
-        <Button themeColor="primary" onClick={() => setShowForm(true)}>
-          New event
-        </Button>
+        {canWrite && (
+          <Button themeColor="primary" onClick={() => setShowForm(true)} data-testid="new-event">
+            New event
+          </Button>
+        )}
       </header>
 
       {loading && <Loader type="infinite-spinner" />}
