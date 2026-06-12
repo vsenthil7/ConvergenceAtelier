@@ -51,6 +51,29 @@ _R3.14 enhancement: demo accounts are now one-tap buttons that fill the email + 
 _password and authenticate; the shared password is never rendered as visible text_
 _(asserted by a security test)._
 
+## Sprint 3b — Event registration & participation  🟨  (NEW — closes real product gaps)
+
+Context: prior to S3b a person could only be created by an admin (no self-signup), and
+users belonged to a *tenant*, never to an *event* — so there was no "join event", no
+per-event attendee roster, and the seeded events had no sessions (blank agenda). S3b
+adds the participation layer and fixes the two UX bugs surfaced in review.
+
+| ID | Requirement | Code | Test | Status |
+|----|-------------|------|------|--------|
+| R3b.1 | Public self-registration (creates `user`; cannot self-grant admin) | `services/auth_service.py`, `api/auth.py`, `schemas/auth.py` | `test_auth_service.py`, `test_auth.py` | ⬜ |
+| R3b.2 | `EventRegistration` model (event↔user, status, unique) | `models/registration.py`, migration | `test_registration_service.py` | ⬜ |
+| R3b.3 | Register / unregister for an event (attendee self-service) | `services/registration_service.py`, `api/events.py` | `test_registration_service.py`, `test_registration_api.py` | ⬜ |
+| R3b.4 | Participant roster per event (admin) + my-status (attendee) | `services/registration_service.py`, `api/events.py` | `test_registration_api.py` | ⬜ |
+| R3b.5 | Tenant isolation + RBAC on registration endpoints | `api/events.py` | `test_registration_api.py` | ⬜ |
+| R3b.6 | Seed real multi-track sessions for demo events | `services/seed.py` | `test_seed.py` | ⬜ |
+| R3b.7 | Frontend: self-registration panel on Login | `components/LoginView.tsx`, `lib/auth.ts` | `LoginView.test.tsx`, `auth.test.ts` | ⬜ |
+| R3b.8 | Frontend: event register button + roster on event page | `components/EventsView.tsx`, `lib/events.ts` | `EventsView.test.tsx`, `events.test.ts` | ⬜ |
+| R3b.9 | Fix: Add-user inline validation (explain disabled state) | `components/UsersView.tsx` | `UsersView.test.tsx` | ⬜ |
+| R3b.10 | Fix: empty-agenda "no sessions yet" affordance | `components/EventsView.tsx` | `EventsView.test.tsx` | ⬜ |
+
+_Plan committed to trackers before implementation (per operator instruction). Each row_
+_lands GREEN with 100% backend coverage / 100% frontend lines, git-first, same-cycle._
+
 ## Sprint 2 — Auth, multi-tenancy, RBAC, Postgres, SSO, demo data
 
 ### Module 2A — Backend auth + tenancy ✅ VERIFIED (95 tests, 100% cov, exit 0)

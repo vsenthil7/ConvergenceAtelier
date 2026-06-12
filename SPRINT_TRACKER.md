@@ -58,14 +58,28 @@ Module 2A backend ✅ · Module 2B frontend ✅ · Postgres (R2.15) ✅ (deploye
 - [ ] Unit + functional + negative + E2E 100%
 
 ## S3 — AI discovery & matchmaking  🟨
-Module 3A backend ✅ (132 tests) · Module 3B frontend discovery UI ✅ (95 tests) · AI agenda draft backend ✅.
+Module 3A backend ✅ (132 tests) · Module 3B frontend ✅ (105 tests): discovery UI + AI agenda-draft UI + one-tap demo login.
 - [x] Semantic talk recommendations (deterministic keyless embeddings in demo mode)
 - [x] Attendee↔speaker / attendee↔attendee matchmaking (backend service + API)
-- [x] AI agenda draft (theme → ordered, track-grouped running order) — backend service + API
+- [x] AI agenda draft (theme → ordered, track-grouped running order) — backend + frontend UI
+- [x] One-tap demo sign-in (no typing; shared password never displayed)
 - [x] Backend unit + functional + negative 100% (**132 tests, 100% cov, exit 0**)
-- [x] Frontend discovery UI: Discover tab, interest search, ranked results grid (**95 tests, exit 0**)
-- [ ] Agenda-draft frontend UI (Kendo AI Prompt/Chat) + matchmaking view
-- [ ] Discovery E2E (Playwright)
+- [x] Frontend discovery + agenda-draft UI 100% lines (**105 tests, exit 0**)
+- [ ] Matchmaking frontend view (attendee↔attendee) + Discovery E2E (Playwright)
+
+## S3b — Event registration & participation  🟨  ← NEW (addresses real product gaps)
+WHY: today users belong to a *tenant*, not an *event*; there is no self-signup, no
+"join event", no per-event attendee list, and seeded events have zero sessions so
+agenda/discovery look empty. This sprint adds the participation layer + fixes UX bugs.
+- [ ] **Public self-registration**: `POST /api/auth/register` (creates a `user` in a
+      chosen public tenant; rejects privileged-role self-grant) + Login screen "Create account" panel
+- [ ] **Event registration model**: `EventRegistration(event_id, user_id, status)` +
+      `POST /api/events/{id}/register`, `DELETE …/register`, `GET …/participants` (RBAC: attendee self-registers; admin sees roster)
+- [ ] **Event page participation**: attendee sees "Register / Registered ✓" + their own status; admin sees participant roster per event
+- [ ] **Seed real sessions** so agenda + discovery + agenda-draft are populated for the demo (3–5 talks per demo event, multi-track)
+- [ ] **Fix: Add-user button** — inline validation hints (email format, password ≥ 8) so the disabled state is explained; show why it is disabled
+- [ ] **Fix: empty-agenda affordance** — "No sessions yet" message in agenda view instead of a blank calendar
+- [ ] Backend unit + functional + negative 100% · Frontend 100% lines · trackers same cycle
 
 ## S4 — Real-time engagement  ⬜
 - [ ] Live Q&A, polls, session sentiment (websocket/SSE)
