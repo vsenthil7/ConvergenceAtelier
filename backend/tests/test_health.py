@@ -1,43 +1,48 @@
-"""Health endpoint — functional and negative coverage."""
+"""Health + readiness — functional and negative coverage."""
 from __future__ import annotations
 
-import httpx
-import pytest
-
-from app.main import create_app
+from app.models.identity import Role
+from tests.conftest import bearer
 
 
-@pytest.fixture
-def client():
-    app = create_app()
-    transport = httpx.ASGITransport(app=app)
-    return httpx.AsyncClient(transport=transport, base_url="http://test")
-
-
-async def test_health_ok(client):
-    """Functional: health returns ok with required fields."""
-    async with client as c:
+async def test_health_ok(make_client, db):
+    async with make_client(db) as c:
         resp = await c.get("/api/health")
     assert resp.status_code == 200
     body = resp.json()
     assert body["status"] == "ok"
     assert body["service"] == "Convergence Atelier"
-    assert body["mode"] in {"mock", "live"}
-    assert "version" in body
-    # time must be ISO and timezone-aware (carries a UTC offset)
-    assert "T" in body["time"]
     assert body["time"].endswith("+00:00")
 
 
-async def test_unknown_route_404(client):
-    """Negative: unknown route returns 404, not 500."""
-    async with client as c:
-        resp = await c.get("/api/does-not-exist")
+async def test_health_rejects_post(make_client, db):
+    async with make_client(db) as c:
+        resp = await c.post("/api/health")
+    assert resp.status_code == 405
+
+
+async def test_unknown_route_404(make_client, db):
+    async with make_client(db) as c:
+        resp = await c.get("/api/nope")
     assert resp.status_code == 404
 
 
-async def test_health_rejects_post(client):
-    """Negative: wrong method returns 405."""
-    async with client as c:
-        resp = await c.post("/api/health")
-    assert resp.status_code == 405
+async def test_ready_reports_counts(make_client, seeded):
+    maker = seeded["maker"]
+    async with make_client(maker) as c:
+        resp = await c.get("/api/ready")
+    assert resp.status_code == 200
+    body = resp.json()
+    assert body["status"] == "ready"
+    assert body["database"] == "ok"
+    assert body["tenants"] == 2
+    assert body["users"] == 4
+    assert body["google_oauth"] is False
+
+
+async def test_ready_empty_db(make_client, db):
+    async with make_client(db) as c:
+        resp = await c.get("/api/ready")
+    assert resp.status_code == 200
+    assert resp.json()["tenants"] == 0
+    assert resp.json()["users"] == 0

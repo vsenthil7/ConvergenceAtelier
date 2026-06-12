@@ -1,4 +1,8 @@
-"""Event + agenda Session models (timezone-aware throughout)."""
+"""Event + agenda Session models (timezone-aware throughout).
+
+Events are tenant-scoped: every event belongs to exactly one tenant, and the
+service layer filters by the caller's tenant (super-admins may span all).
+"""
 from __future__ import annotations
 
 import uuid
@@ -15,11 +19,14 @@ def _uuid() -> str:
 
 
 class Event(TimestampMixin, Base):
-    """A conference/event the organiser is running."""
+    """A conference/event the organiser is running (tenant-scoped)."""
 
     __tablename__ = "events"
 
     id: Mapped[str] = mapped_column(String(32), primary_key=True, default=_uuid)
+    tenant_id: Mapped[str] = mapped_column(
+        ForeignKey("tenants.id", ondelete="CASCADE"), nullable=False, index=True
+    )
     name: Mapped[str] = mapped_column(String(200), nullable=False)
     location: Mapped[str] = mapped_column(String(200), default="", nullable=False)
     description: Mapped[str] = mapped_column(Text, default="", nullable=False)
