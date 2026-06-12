@@ -31,6 +31,14 @@ def _evt() -> EventCreate:
     )
 
 
+async def test_create_then_list(session):
+    svc = EventService(session)
+    await svc.create_event(_evt())
+    events = await svc.list_events()
+    assert len(events) == 1
+    assert events[0].name == "Event"
+
+
 async def test_update_changes_times(session):
     svc = EventService(session)
     event = await svc.create_event(_evt())
@@ -44,9 +52,21 @@ async def test_update_changes_times(session):
     assert updated.starts_at.hour == 8
 
 
+async def test_delete_removes_event(session):
+    svc = EventService(session)
+    event = await svc.create_event(_evt())
+    await svc.delete_event(event.id)
+    assert await svc.list_events() == []
+
+
 async def test_get_missing_raises(session):
     with pytest.raises(NotFoundError):
         await EventService(session).get_event("missing")
+
+
+async def test_delete_missing_raises(session):
+    with pytest.raises(NotFoundError):
+        await EventService(session).delete_event("missing")
 
 
 async def test_add_session_returns_item(session):

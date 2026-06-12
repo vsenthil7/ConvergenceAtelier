@@ -1,13 +1,14 @@
 """Request/response schemas for events and agenda sessions.
 
-All datetimes are timezone-aware; naive inputs are rejected so the database never
-receives a naive datetime (pre-mitigation for the naive/aware subtraction bug).
+Inbound datetimes must be timezone-aware (naive inputs are rejected). On the way
+out, datetimes loaded from SQLite come back naive (SQLite drops tzinfo), so the
+read schemas coerce them back to UTC-aware rather than rejecting them.
 """
 from __future__ import annotations
 
-from datetime import datetime
+from datetime import datetime, timezone
 
-from pydantic import BaseModel, ConfigDict, Field, model_validator
+from pydantic import BaseModel, ConfigDict, Field, field_validator, model_validator
 
 
 def _require_aware(value: datetime, field: str) -> datetime:
@@ -16,7 +17,16 @@ def _require_aware(value: datetime, field: str) -> datetime:
     return value
 
 
-class SessionBase(BaseModel):
+def _as_utc(value: datetime) -> datetime:
+    """Coerce a possibly-naive datetime to UTC-aware (storage is always UTC)."""
+    if value.tzinfo is None:
+        return value.replace(tzinfo=timezone.utc)
+    return value.astimezone(timezone.utc)
+
+
+# ---------- inbound (write) ----------
+
+class SessionCreate(BaseModel):
     title: str = Field(min_length=1, max_length=200)
     track: str = Field(default="General", max_length=100)
     speaker: str = Field(default="", max_length=200)
@@ -24,7 +34,7 @@ class SessionBase(BaseModel):
     ends_at: datetime
 
     @model_validator(mode="after")
-    def _check(self) -> "SessionBase":
+    def _check(self) -> "SessionCreate":
         _require_aware(self.starts_at, "starts_at")
         _require_aware(self.ends_at, "ends_at")
         if self.ends_at <= self.starts_at:
@@ -32,17 +42,7 @@ class SessionBase(BaseModel):
         return self
 
 
-class SessionCreate(SessionBase):
-    pass
-
-
-class SessionRead(SessionBase):
-    model_config = ConfigDict(from_attributes=True)
-    id: str
-    event_id: str
-
-
-class EventBase(BaseModel):
+class EventCreate(BaseModel):
     name: str = Field(min_length=1, max_length=200)
     location: str = Field(default="", max_length=200)
     description: str = Field(default="", max_length=5000)
@@ -50,16 +50,12 @@ class EventBase(BaseModel):
     ends_at: datetime
 
     @model_validator(mode="after")
-    def _check(self) -> "EventBase":
+    def _check(self) -> "EventCreate":
         _require_aware(self.starts_at, "starts_at")
         _require_aware(self.ends_at, "ends_at")
         if self.ends_at <= self.starts_at:
             raise ValueError("ends_at must be after starts_at")
         return self
-
-
-class EventCreate(EventBase):
-    pass
 
 
 class EventUpdate(BaseModel):
@@ -86,7 +82,35 @@ class EventUpdate(BaseModel):
         return self
 
 
-class EventRead(EventBase):
+# ---------- outbound (read) ----------
+
+class SessionRead(BaseModel):
     model_config = ConfigDict(from_attributes=True)
     id: str
+    event_id: str
+    title: str
+    track: str
+    speaker: str
+    starts_at: datetime
+    ends_at: datetime
+
+    @field_validator("starts_at", "ends_at", mode="after")
+    @classmethod
+    def _coerce(cls, v: datetime) -> datetime:
+        return _as_utc(v)
+
+
+class EventRead(BaseModel):
+    model_config = ConfigDict(from_attributes=True)
+    id: str
+    name: str
+    location: str
+    description: str
+    starts_at: datetime
+    ends_at: datetime
     sessions: list[SessionRead] = []
+
+    @field_validator("starts_at", "ends_at", mode="after")
+    @classmethod
+    def _coerce(cls, v: datetime) -> datetime:
+        return _as_utc(v)
