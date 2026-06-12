@@ -1,12 +1,18 @@
 // Typed client for the events + agenda API (S1).
 // Pure functions with an injectable fetch so every path is unit-testable.
 
+export type SessionMode = "in_person" | "online" | "hybrid";
+
 export interface AgendaSession {
   id: string;
   event_id: string;
   title: string;
   track: string;
   speaker: string;
+  mode: SessionMode;
+  stream_url: string;
+  meeting_url: string;
+  recording_url: string;
   starts_at: string;
   ends_at: string;
 }
@@ -176,6 +182,18 @@ export function eventParticipants(
 ): Promise<Participant[]> {
   return request<Participant[]>(
     `/api/events/${eventId}/participants`,
+    { method: "GET" },
+    fetchImpl,
+  );
+}
+
+/** On-demand recordings catalog: sessions in an event that have a recording. */
+export function eventRecordings(
+  eventId: string,
+  fetchImpl: typeof fetch = fetch,
+): Promise<AgendaSession[]> {
+  return request<AgendaSession[]>(
+    `/api/events/${eventId}/recordings`,
     { method: "GET" },
     fetchImpl,
   );

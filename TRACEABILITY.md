@@ -86,13 +86,13 @@ Each row lands GREEN independently with 100% coverage, git-first.
 | ID | Requirement | Status |
 |----|-------------|--------|
 | R7.1 | `event_type` enum + JSON `config` on Event; type-aware create/edit + grid badge + migration | ✅ |
-| R7.2 | Session `mode` (in_person/online/hybrid) + `stream_url`/`recording_url`/`meeting_url`; recordings catalog | 🟨 |
-| R7.2.1 | Session model: mode enum + URL columns + migration | ⬜ |
-| R7.2.2 | Session schema carries mode + URLs (optional, validated) | ⬜ |
-| R7.2.3 | Recordings query (sessions with a recording_url) + endpoint | ⬜ |
-| R7.2.4 | Frontend session/recordings client types + calls | ⬜ |
-| R7.2.5 | Agenda mode chip + ▶ recording link per talk | ⬜ |
-| R7.2.6 | "Recordings" catalog panel on the event page | ⬜ |
+| R7.2 | Session `mode` (in_person/online/hybrid) + `stream_url`/`recording_url`/`meeting_url`; recordings catalog | ✅ |
+| R7.2.1 | Session model: mode enum + URL columns + migration | ✅ |
+| R7.2.2 | Session schema carries mode + URLs (optional, validated) | ✅ |
+| R7.2.3 | Recordings query (sessions with a recording_url) + endpoint | ✅ |
+| R7.2.4 | Frontend session/recordings client types + calls | ✅ |
+| R7.2.5 | Agenda mode chip + ▶ recording link per talk | ✅ |
+| R7.2.6 | "Recordings" catalog panel on the event page | ✅ |
 | R7.3 | Hackathon module: Team + Submission (repo/demo links) + judging rubric + leaderboard | ⬜ |
 | R7.4 | Webinar module: stream provider + registration cap/waitlist + recording + reminders | ⬜ |
 | R7.5 | Linked/hybrid events: event-to-event links + cross-event session catalog | ⬜ |
@@ -106,6 +106,13 @@ _lines, prod tsc clean. Code: `models/event.py`, `schemas/event.py`, `services/e
 _`migrations/versions/b2c3d4e5f6a7_*`, `components/EventForm.tsx`, `components/EventsView.tsx`,_
 _`lib/events.ts`. Tests: `test_events.py`, `EventForm.test.tsx`, `EventsView.test.tsx`._
 _Design rule recorded: types are composable modules; never fork the Event model per type._
+
+_R7.2 VERIFIED: backend `SessionMode` enum + stream/meeting/recording URLs on Session,_
+_session schema + service carry them, `list_recordings` + GET `/events/{id}/recordings`_
+_(attendee-facing), migration `c3d4e5f6a7b8` (upgrade+downgrade verified), seed enriched_
+_with online/hybrid sessions + recordings — 169 tests, 100% cov. Frontend: agenda mode_
+_chips + live-stream/▶recording links + on-demand Recordings catalog — 132 tests, 100%_
+_lines, prod tsc clean. Delivers the live-program / webinar-video / record-that feature._
 
 
 ## Sprint 2 — Auth, multi-tenancy, RBAC, Postgres, SSO, demo data

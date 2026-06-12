@@ -9,6 +9,7 @@ import {
   cancelRegistration,
   myRegistration,
   eventParticipants,
+  eventRecordings,
   type EventModel,
 } from "../lib/events";
 
@@ -145,5 +146,18 @@ describe("events api client", () => {
   it("propagates a 404 when registering for an out-of-scope event (negative)", async () => {
     const f = fetchReturning(404, { detail: "Event not found" }, false);
     await expect(registerForEvent("missing", f)).rejects.toThrow("Event not found");
+  });
+
+  it("lists event recordings (S7.2 functional)", async () => {
+    const f = fetchReturning(200, [
+      {
+        id: "s1", event_id: "e1", title: "Keynote", track: "Main", speaker: "Jane",
+        mode: "hybrid", stream_url: "", meeting_url: "", recording_url: "https://rec/x",
+        starts_at: "2026-06-11T10:00:00+00:00", ends_at: "2026-06-11T11:00:00+00:00",
+      },
+    ]);
+    const out = await eventRecordings("e1", f);
+    expect(out).toHaveLength(1);
+    expect(out[0].recording_url).toBe("https://rec/x");
   });
 });

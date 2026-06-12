@@ -20,6 +20,10 @@ const event1: EventModel = {
       title: "Keynote",
       track: "Main",
       speaker: "Jane",
+      mode: "hybrid",
+      stream_url: "https://stream.demo/keynote",
+      meeting_url: "",
+      recording_url: "https://rec.demo/keynote",
       starts_at: "2026-06-11T10:00:00.000Z",
       ends_at: "2026-06-11T11:00:00.000Z",
     },
@@ -32,6 +36,10 @@ function makeFetch(initial: EventModel[]) {
   let myStatus: string | null = null;
   const impl = vi.fn(async (url: string, init?: RequestInit) => {
     const method = init?.method ?? "GET";
+    if (url.includes("/recordings")) {
+      const recs = (store[0]?.sessions ?? []).filter((s) => s.recording_url);
+      return { ok: true, status: 200, json: async () => recs };
+    }
     if (url.includes("/participants")) {
       return { ok: true, status: 200, json: async () => [
         { user_id: "u1", email: "att@x.com", full_name: "Att Endee", status: "registered" },
@@ -238,5 +246,66 @@ describe("EventsView", () => {
     const grid = await screen.findByTestId("events-grid");
     const badge = within(grid).getByText("hackathon");
     expect(badge).toHaveClass("event-type-badge", "event-type-hackathon");
+  });
+
+  it("shows a mode chip + stream + recording link per session (S7.2 functional)", async () => {
+    const f = makeFetch([event1]);
+    render(<EventsView fetchImpl={f} />);
+    const modes = await screen.findByTestId("session-modes");
+    expect(within(modes).getByText("Hybrid")).toBeInTheDocument();
+    expect(screen.getByTestId("stream-s1")).toHaveAttribute("href", "https://stream.demo/keynote");
+    expect(screen.getByTestId("recording-s1")).toHaveAttribute("href", "https://rec.demo/keynote");
+  });
+
+  it("shows the on-demand recordings catalog (S7.2 functional)", async () => {
+    const f = makeFetch([event1]);
+    render(<EventsView fetchImpl={f} />);
+    const catalog = await screen.findByTestId("recordings");
+    expect(within(catalog).getByText(/Recordings \(1\)/)).toBeInTheDocument();
+    expect(screen.getByTestId("catalog-s1")).toHaveAttribute("href", "https://rec.demo/keynote");
+  });
+
+  it("hides the recordings catalog when there are none (S7.2 negative)", async () => {
+    const noRec: EventModel = {
+      ...event1,
+      id: "nr1",
+      sessions: [
+        {
+          id: "s9",
+          event_id: "nr1",
+          title: "Live only",
+          track: "Main",
+          speaker: "Sam",
+          mode: "online",
+          stream_url: "https://stream.demo/x",
+          meeting_url: "",
+          recording_url: "",
+          starts_at: "2026-06-11T10:00:00.000Z",
+          ends_at: "2026-06-11T11:00:00.000Z",
+        },
+      ],
+    };
+    const f = makeFetch([noRec]);
+    render(<EventsView fetchImpl={f} />);
+    await screen.findByTestId("session-modes");
+    expect(screen.queryByTestId("recordings")).not.toBeInTheDocument();
+    // online session shows its stream but no recording link
+    expect(screen.getByTestId("stream-s9")).toBeInTheDocument();
+    expect(screen.queryByTestId("recording-s9")).not.toBeInTheDocument();
+  });
+
+  it("tolerates a recordings load failure without crashing (S7.2 negative)", async () => {
+    const f = vi.fn(async (url: string, init?: RequestInit) => {
+      const method = init?.method ?? "GET";
+      if (url.includes("/recordings")) return { ok: false, status: 500, json: async () => ({ detail: "x" }) };
+      if (url.includes("/participants")) return { ok: true, status: 200, json: async () => [] };
+      if (url.endsWith("/api/events") && method === "GET")
+        return { ok: true, status: 200, json: async () => [event1] };
+      return { ok: false, status: 404, json: async () => ({ detail: "nope" }) };
+    }) as unknown as typeof fetch;
+    render(<EventsView fetchImpl={f} canWrite={true} />);
+    // agenda still renders; recordings panel simply absent
+    expect(await screen.findByTestId("session-modes")).toBeInTheDocument();
+    expect(screen.queryByTestId("recordings")).not.toBeInTheDocument();
   });
 });

@@ -12,12 +12,21 @@ import {
   cancelRegistration,
   myRegistration,
   eventParticipants,
+  eventRecordings,
   type EventModel,
   type EventInput,
   type Participant,
   type RegistrationStatus,
+  type AgendaSession,
+  type SessionMode,
 } from "../lib/events";
 import { EventForm } from "./EventForm";
+
+const MODE_LABEL: Record<SessionMode, string> = {
+  in_person: "In person",
+  online: "Online",
+  hybrid: "Hybrid",
+};
 
 interface Deps {
   fetchImpl?: typeof fetch;
@@ -45,6 +54,8 @@ export function EventsView({ fetchImpl = fetch, newEventDefaults, canWrite = tru
   const [myStatus, setMyStatus] = useState<RegistrationStatus | null>(null);
   const [roster, setRoster] = useState<Participant[]>([]);
   const [regBusy, setRegBusy] = useState(false);
+  // Recordings catalog (S7.2): sessions in the selected event that have a recording.
+  const [recordings, setRecordings] = useState<AgendaSession[]>([]);
 
   const refresh = useCallback(async () => {
     setLoading(true);
@@ -94,6 +105,12 @@ export function EventsView({ fetchImpl = fetch, newEventDefaults, canWrite = tru
         } catch {
           setMyStatus(null);
         }
+      }
+      // Recordings catalog is visible to every role.
+      try {
+        setRecordings(await eventRecordings(eventId, fetchImpl));
+      } catch {
+        setRecordings([]);
       }
     },
     [canWrite, fetchImpl],
@@ -242,10 +259,66 @@ export function EventsView({ fetchImpl = fetch, newEventDefaults, canWrite = tru
               {canWrite ? " Add talks to build the agenda." : " Check back soon."}
             </p>
           ) : (
-            <Scheduler data={agendaItems} defaultDate={new Date(selected.starts_at)}>
-              <DayView />
-              <WeekView />
-            </Scheduler>
+            <>
+              <ul className="session-modes" data-testid="session-modes">
+                {selected.sessions.map((s) => (
+                  <li key={s.id} className="session-mode-row">
+                    <span className="session-mode-title">{s.title}</span>
+                    <span className={`session-mode-chip mode-${s.mode}`}>
+                      {MODE_LABEL[s.mode]}
+                    </span>
+                    {s.stream_url && (
+                      <a
+                        className="session-link"
+                        href={s.stream_url}
+                        target="_blank"
+                        rel="noreferrer"
+                        data-testid={`stream-${s.id}`}
+                      >
+                        Live stream
+                      </a>
+                    )}
+                    {s.recording_url && (
+                      <a
+                        className="session-link"
+                        href={s.recording_url}
+                        target="_blank"
+                        rel="noreferrer"
+                        data-testid={`recording-${s.id}`}
+                      >
+                        ▶ Recording
+                      </a>
+                    )}
+                  </li>
+                ))}
+              </ul>
+              <Scheduler data={agendaItems} defaultDate={new Date(selected.starts_at)}>
+                <DayView />
+                <WeekView />
+              </Scheduler>
+            </>
+          )}
+
+          {/* On-demand recordings catalog (S7.2). */}
+          {recordings.length > 0 && (
+            <div className="recordings" data-testid="recordings">
+              <h4>Recordings ({recordings.length})</h4>
+              <ul className="recordings-list">
+                {recordings.map((r) => (
+                  <li key={r.id}>
+                    <a
+                      href={r.recording_url}
+                      target="_blank"
+                      rel="noreferrer"
+                      data-testid={`catalog-${r.id}`}
+                    >
+                      ▶ {r.title}
+                    </a>{" "}
+                    — {r.speaker || "TBA"}
+                  </li>
+                ))}
+              </ul>
+            </div>
           )}
         </div>
       )}

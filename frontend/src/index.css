@@ -196,3 +196,21 @@ body {
 .event-type-workshop { background: rgba(217, 119, 6, 0.15); }
 .event-type-meetup { background: rgba(22, 163, 74, 0.15); }
 .event-type-hybrid { background: rgba(219, 39, 119, 0.15); }
+
+/* --- session mode + recordings (S7.2) --- */
+.session-modes { list-style: none; margin: 0 0 1rem; padding: 0; }
+.session-mode-row { display: flex; align-items: center; gap: 0.6rem; padding: 0.25rem 0; flex-wrap: wrap; }
+.session-mode-title { font-weight: 600; }
+.session-mode-chip {
+  font-size: 0.7rem; font-weight: 600; padding: 0.05rem 0.45rem; border-radius: 999px;
+  text-transform: uppercase; letter-spacing: 0.02em; background: rgba(11, 31, 58, 0.1);
+}
+.session-mode-chip.mode-online { background: rgba(2, 132, 199, 0.18); }
+.session-mode-chip.mode-hybrid { background: rgba(219, 39, 119, 0.18); }
+.session-link { font-size: 0.8rem; text-decoration: none; color: #0284c7; font-weight: 600; }
+.session-link:hover { text-decoration: underline; }
+.recordings { margin-top: 1rem; }
+.recordings h4 { margin: 0 0 0.4rem; }
+.recordings-list { margin: 0; padding-left: 1.1rem; font-size: 0.9rem; }
+.recordings-list a { color: #7c3aed; font-weight: 600; text-decoration: none; }
+.recordings-list a:hover { text-decoration: underline; }
