@@ -125,3 +125,24 @@ body {
 }
 .users-add label { display: flex; flex-direction: column; gap: 0.25rem; font-size: 0.9rem; }
 .users-add h3 { margin: 0; }
+
+/* --- discovery --- */
+.discovery-view { max-width: 900px; }
+.discovery-sub { opacity: 0.75; font-size: 0.9rem; margin: 0 0 1rem; }
+.discovery-search {
+  display: flex;
+  gap: 0.5rem;
+  align-items: center;
+  margin-bottom: 1.25rem;
+}
+.discovery-search .k-input { flex: 1; }
+.discovery-score {
+  display: inline-block;
+  min-width: 3rem;
+  text-align: center;
+  padding: 0.1rem 0.4rem;
+  border-radius: 999px;
+  background: rgba(11, 31, 58, 0.1);
+  font-variant-numeric: tabular-nums;
+  font-weight: 600;
+}

@@ -36,6 +36,13 @@ _Embedding is a deterministic bag-of-words hashing vectoriser (256-dim, L2-norma
 _so recommendations are reproducible and keyless; a real provider injects with the same_
 _`(str)->list[float]` signature. Matchmaking is pure/synchronous over supplied profiles._
 
+### Module 3B — Frontend discovery UI ✅ VERIFIED (95 tests pass, exit 0)
+| R3.9 | Typed discovery client (similar/recommend/match) | `lib/discovery.ts` | `discovery.test.ts` | ✅ |
+| R3.10 | Discover tab (all roles) + interest search | `App.tsx`, `components/DiscoveryView.tsx` | `App.test.tsx`, `DiscoveryView.test.tsx` | ✅ |
+| R3.11 | Ranked results grid with score badges + states | `components/DiscoveryView.tsx` | `DiscoveryView.test.tsx` | ✅ |
+
+_Verified: 95 vitest tests pass, statements/lines 100%; `discovery.ts` 100% on all metrics._
+
 ## Sprint 2 — Auth, multi-tenancy, RBAC, Postgres, SSO, demo data
 
 ### Module 2A — Backend auth + tenancy ✅ VERIFIED (95 tests, 100% cov, exit 0)

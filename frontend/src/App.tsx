@@ -7,8 +7,9 @@ import { makeAuthedFetch } from "./lib/authedFetch";
 import { LoginView } from "./components/LoginView";
 import { EventsView } from "./components/EventsView";
 import { UsersView } from "./components/UsersView";
+import { DiscoveryView } from "./components/DiscoveryView";
 
-type Tab = "events" | "users";
+type Tab = "events" | "discover" | "users";
 
 const ROLE_LABEL: Record<string, string> = {
   super_admin: "Super Admin",
@@ -45,6 +46,13 @@ function Shell({ fetchImpl }: { fetchImpl: typeof fetch }) {
           >
             Events
           </Button>
+          <Button
+            fillMode={tab === "discover" ? "solid" : "flat"}
+            onClick={() => setTab("discover")}
+            data-testid="nav-discover"
+          >
+            Discover
+          </Button>
           {isAdmin && (
             <Button
               fillMode={tab === "users" ? "solid" : "flat"}
@@ -70,6 +78,7 @@ function Shell({ fetchImpl }: { fetchImpl: typeof fetch }) {
         {tab === "events" && (
           <EventsView fetchImpl={authedFetch} canWrite={current.role !== "user"} />
         )}
+        {tab === "discover" && <DiscoveryView fetchImpl={authedFetch} />}
         {tab === "users" && isAdmin && <UsersView fetchImpl={authedFetch} />}
       </main>
     </div>

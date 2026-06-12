@@ -22,6 +22,7 @@ interface Scenario {
   me?: { role: string; email?: string; tenant_id?: string | null };
   events?: unknown[];
   users?: unknown[];
+  recommendations?: unknown[];
   googleEnabled?: boolean;
   failMe?: boolean;
 }
@@ -59,6 +60,9 @@ function mockApi(s: Scenario): typeof fetch {
     if (url.includes("/api/auth/users")) {
       if (method === "POST") return ok({ id: "n", email: "x", full_name: "", role: "user", tenant_id: "t1", auth_provider: "local", last_login_at: null }, 201);
       return ok(s.users ?? []);
+    }
+    if (url.includes("/api/discovery/recommend")) {
+      return ok(s.recommendations ?? []);
     }
     if (url.includes("/api/events")) {
       return ok(s.events ?? []);
@@ -148,5 +152,31 @@ describe("App auth gate + role-aware shell (S2)", () => {
     render(<App fetchImpl={f} store={memoryStore("tok")} />);
     await waitFor(() => expect(screen.getByTestId("events-grid")).toBeInTheDocument());
     expect(screen.queryByTestId("new-event")).not.toBeInTheDocument();
+  });
+
+  it("shows the Discover tab to every role and navigates to it (functional)", async () => {
+    const f = mockApi({
+      me: { role: "user" },
+      recommendations: [
+        {
+          score: 0.88,
+          session: {
+            id: "s1",
+            event_id: "e1",
+            title: "React performance",
+            track: "Frontend",
+            speaker: "Ada",
+            starts_at: "2026-06-11T10:00:00.000Z",
+            ends_at: "2026-06-11T11:00:00.000Z",
+          },
+        },
+      ],
+    });
+    render(<App fetchImpl={f} store={memoryStore("tok")} />);
+    await userEvent.click(await screen.findByTestId("nav-discover"));
+    await userEvent.type(screen.getByLabelText("discovery-interests"), "react");
+    await userEvent.click(screen.getByTestId("discovery-search"));
+    expect(await screen.findByTestId("discovery-results")).toBeInTheDocument();
+    expect(screen.getByText("React performance")).toBeInTheDocument();
   });
 });
