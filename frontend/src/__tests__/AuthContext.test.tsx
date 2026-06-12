@@ -32,7 +32,10 @@ function Probe() {
 
 describe("AuthContext", () => {
   it("throws when useAuth is used outside a provider (negative)", () => {
+    // Suppress React's expected error-boundary console noise for this case.
+    const spy = vi.spyOn(console, "error").mockImplementation(() => {});
     expect(() => renderHook(() => useAuth())).toThrow(/within an AuthProvider/);
+    spy.mockRestore();
   });
 
   it("resolves an anonymous state when no token (functional)", async () => {
