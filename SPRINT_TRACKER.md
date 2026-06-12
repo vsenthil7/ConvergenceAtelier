@@ -57,11 +57,13 @@ Module 2A backend ✅ · Module 2B frontend ✅ · Postgres (R2.15) ⬜ remainin
 - [ ] Multi-track timeline (Gantt) + conflict detection
 - [ ] Unit + functional + negative + E2E 100%
 
-## S3 — AI discovery & matchmaking  ⬜
-- [ ] Semantic talk recommendations (mock embeddings in demo mode)
-- [ ] Attendee↔speaker / attendee↔attendee matchmaking
+## S3 — AI discovery & matchmaking  🟨
+Module 3A backend ✅ (126 tests, 100% cov) · Frontend discovery UI ⬜ · AI agenda draft ⬜.
+- [x] Semantic talk recommendations (deterministic keyless embeddings in demo mode)
+- [x] Attendee↔speaker / attendee↔attendee matchmaking (backend service + API)
+- [x] Backend unit + functional + negative 100% (**126 tests, 100% cov, exit 0**)
 - [ ] AI agenda draft (AI Prompt + AI Chat)
-- [ ] Unit + functional + negative + E2E 100%
+- [ ] Frontend discovery UI (recommendations + matchmaking views) + E2E
 
 ## S4 — Real-time engagement  ⬜
 - [ ] Live Q&A, polls, session sentiment (websocket/SSE)

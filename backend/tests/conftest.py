@@ -90,6 +90,31 @@ async def make_event(maker, tenant_id: str, name: str = "Conf") -> str:
         return e.id
 
 
+async def make_session(
+    maker,
+    event_id: str,
+    title: str = "Talk",
+    track: str = "Main",
+    speaker: str = "Speaker",
+) -> str:
+    """Create an agenda session directly and return its id."""
+    from datetime import datetime, timezone
+
+    async with maker() as s:
+        item = Session(
+            event_id=event_id,
+            title=title,
+            track=track,
+            speaker=speaker,
+            starts_at=datetime(2026, 6, 11, 10, tzinfo=timezone.utc),
+            ends_at=datetime(2026, 6, 11, 11, tzinfo=timezone.utc),
+        )
+        s.add(item)
+        await s.commit()
+        await s.refresh(item)
+        return item.id
+
+
 def event_payload(**overrides):
     base = {
         "name": "React Summit",

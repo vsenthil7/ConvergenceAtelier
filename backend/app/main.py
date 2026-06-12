@@ -15,6 +15,7 @@ from app.api.errors import (
     unauthorized_handler,
 )
 from app.api.events import router as events_router
+from app.api.discovery import router as discovery_router
 from app.api.health import router as health_router
 from app.config import settings
 from app.db.session import SessionLocal, init_models
@@ -55,6 +56,7 @@ def create_app() -> FastAPI:
     app.include_router(health_router)
     app.include_router(auth_router)
     app.include_router(events_router)
+    app.include_router(discovery_router)
     return app
 
 

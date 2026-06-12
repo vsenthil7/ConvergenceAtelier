@@ -17,6 +17,25 @@ backend 8/8 · frontend 7/7 · e2e 8/8 · build OK · `c214b2c`.
 | R1.14 | Agenda scheduler view | `components/EventsView.tsx` | `EventsView.test.tsx` | ✅ |
 | R1.15 | Empty/error/loading states | `components/EventsView.tsx` | `EventsView.test.tsx` | ✅ |
 
+## Sprint 3 — AI discovery & matchmaking
+
+### Module 3A — Backend: semantic recommendations + matchmaking ✅ VERIFIED (126 tests, 100% cov, exit 0)
+| ID | Requirement | Code | Test | Status |
+|----|-------------|------|------|--------|
+| R3.1 | Deterministic keyless embedding (demo mode) | `core/embedding.py` | `test_embedding.py` | ✅ |
+| R3.2 | Cosine similarity + injectable embedder | `core/embedding.py`, `services/discovery_service.py` | `test_embedding.py`, `test_discovery_service.py` | ✅ |
+| R3.3 | Session→similar-session recommendations | `services/discovery_service.py`, `api/discovery.py` | `test_discovery_service.py`, `test_discovery_api.py` | ✅ |
+| R3.4 | Interest-profile → session recommendations | `services/discovery_service.py`, `api/discovery.py` | `test_discovery_service.py`, `test_discovery_api.py` | ✅ |
+| R3.5 | Attendee↔attendee matchmaking | `services/discovery_service.py`, `api/discovery.py` | `test_discovery_service.py`, `test_discovery_api.py` | ✅ |
+| R3.6 | Tenant scoping + super-admin span on discovery | `api/discovery.py` | `test_discovery_api.py` | ✅ |
+| R3.7 | Auth-gated, all roles (attendee-facing) | `api/discovery.py` | `test_discovery_api.py` | ✅ |
+| R3.8 | Real-LLM key behind `use_mocks=false` (config) | `config.py` | `test_api_helpers.py` | ✅ |
+
+_Verified via subprocess pytest: 126 passed, 100% coverage, exit 0._
+_Embedding is a deterministic bag-of-words hashing vectoriser (256-dim, L2-normalised),_
+_so recommendations are reproducible and keyless; a real provider injects with the same_
+_`(str)->list[float]` signature. Matchmaking is pure/synchronous over supplied profiles._
+
 ## Sprint 2 — Auth, multi-tenancy, RBAC, Postgres, SSO, demo data
 
 ### Module 2A — Backend auth + tenancy ✅ VERIFIED (95 tests, 100% cov, exit 0)

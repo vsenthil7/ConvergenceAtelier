@@ -34,6 +34,18 @@ class Settings(BaseSettings):
     # --- demo seed toggle ---
     seed_demo_data: bool = True
 
+    # --- AI discovery (S3) ---
+    # In demo mode (use_mocks) recommendations + matchmaking use a deterministic,
+    # keyless local embedding. Set use_mocks=false and provide a key to wire a
+    # real embedding/LLM provider (the service accepts an injectable embedder).
+    ai_api_key: str = ""
+    ai_embedding_model: str = "text-embedding-3-small"
+
+    @property
+    def ai_live_enabled(self) -> bool:
+        """True only when real AI calls are configured (key present, mocks off)."""
+        return bool(self.ai_api_key) and not self.use_mocks
+
     @property
     def cors_origin_list(self) -> list[str]:
         return [o.strip() for o in self.cors_origins.split(",") if o.strip()]

@@ -147,3 +147,97 @@ async def test_event_routes_called_directly(db):
     async with maker() as s:
         svc = EventService(s)
         await delete_event(eid, user=admin, svc=svc)
+
+
+def test_discovery_read_scope_helpers():
+    """Cover the discovery route's tenant-scope helper on both branches."""
+    from app.api.discovery import _read_scope as disc_scope
+
+    su = User(email="s@x.com", role=Role.SUPER_ADMIN, tenant_id=None)
+    u = User(email="u@x.com", role=Role.USER, tenant_id="t1")
+    assert disc_scope(su) is None
+    assert disc_scope(u) == "t1"
+
+
+async def test_discovery_routes_called_directly(db):
+    """Cover the discovery route handler bodies deterministically."""
+    from datetime import datetime, timezone
+
+    from app.api.discovery import (
+        match_attendees,
+        recommend_for_interests,
+        similar_sessions,
+    )
+    from app.models.event import Event, Session
+    from app.models.identity import Tenant
+    from app.schemas.discovery import AttendeeProfileIn, InterestQuery, MatchRequest
+    from app.services.discovery_service import DiscoveryService
+
+    maker = db
+    async with maker() as s:
+        t = Tenant(name="Org", slug="org")
+        s.add(t)
+        await s.flush()
+        tid = t.id
+        ev = Event(
+            tenant_id=tid,
+            name="Conf",
+            starts_at=datetime(2026, 6, 11, 9, tzinfo=timezone.utc),
+            ends_at=datetime(2026, 6, 12, 17, tzinfo=timezone.utc),
+        )
+        s.add(ev)
+        await s.flush()
+        s.add_all(
+            [
+                Session(
+                    event_id=ev.id, title="React hooks", track="FE", speaker="Ada",
+                    starts_at=datetime(2026, 6, 11, 10, tzinfo=timezone.utc),
+                    ends_at=datetime(2026, 6, 11, 11, tzinfo=timezone.utc),
+                ),
+                Session(
+                    event_id=ev.id, title="More React hooks", track="FE", speaker="Lin",
+                    starts_at=datetime(2026, 6, 11, 11, tzinfo=timezone.utc),
+                    ends_at=datetime(2026, 6, 11, 12, tzinfo=timezone.utc),
+                ),
+            ]
+        )
+        await s.commit()
+        first_id = (await s.execute(__import__("sqlalchemy").select(Session.id)))
+        sid = first_id.scalars().first()
+
+    admin = User(email="a@x.com", role=Role.TENANT_ADMIN, tenant_id=tid)
+
+    async with maker() as s:
+        svc = DiscoveryService(s)
+        sim = await similar_sessions(sid, limit=5, user=admin, svc=svc)
+        assert isinstance(sim, list)
+        rec = await recommend_for_interests(
+            InterestQuery(interests="react hooks", limit=2), user=admin, svc=svc
+        )
+        assert len(rec) >= 1
+        matches = await match_attendees(
+            MatchRequest(
+                attendees=[
+                    AttendeeProfileIn(id="1", name="A", interests="react"),
+                    AttendeeProfileIn(id="2", name="B", interests="react"),
+                ],
+                limit=5,
+            ),
+            user=admin,
+            svc=svc,
+        )
+        assert matches and {matches[0].a.id, matches[0].b.id} == {"1", "2"}
+
+
+def test_ai_live_enabled_property():
+    """Cover the Settings.ai_live_enabled branches."""
+    from app.config import Settings
+
+    off = Settings(ai_api_key="", use_mocks=True)
+    assert off.ai_live_enabled is False
+    # key present but mocks still on -> still disabled
+    mocked = Settings(ai_api_key="sk-test", use_mocks=True)
+    assert mocked.ai_live_enabled is False
+    # key present and mocks off -> enabled
+    live = Settings(ai_api_key="sk-test", use_mocks=False)
+    assert live.ai_live_enabled is True
