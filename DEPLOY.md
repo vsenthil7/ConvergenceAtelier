@@ -16,8 +16,12 @@ rm -rf convergence
 git clone https://github.com/vsenthil7/ConvergenceAtelier.git convergence
 cd convergence
 
-# Kendo license for the frontend build (paste your trial key, or scp the file):
-export TELERIK_LICENSE="$(cat /root/telerik-license.txt)"
+# Kendo license for the frontend build (build-time only). The file is gitignored,
+# so it is NOT in the clone — upload it first from your machine:
+#   scp telerik-license.txt root@45.77.52.54:/root/telerik-license.txt
+# Then load it (the `2>/dev/null` keeps things quiet if it is missing — the build
+# still works in Kendo trial mode without it):
+export TELERIK_LICENSE="$(cat /root/telerik-license.txt 2>/dev/null || true)"
 
 # Remap port 80 -> 8095 (override is gitignored; copy from the example):
 cp docker-compose.override.example.yml docker-compose.override.yml
