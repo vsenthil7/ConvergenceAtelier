@@ -115,6 +115,34 @@ class DiscoveryService:
         query_vec = self.embed(interests)
         return self._rank(query_vec, sessions, limit)
 
+    async def recommend_across_links(
+        self,
+        event_id: str,
+        interests: str,
+        tenant_id: str | None,
+        limit: int = 5,
+    ) -> list[ScoredSession]:
+        """Recommend sessions across an event AND its linked events (S7.5).
+
+        Discovery for a linked series: gather the sessions of the event plus
+        every event linked to it, then rank against the interest profile. Reuses
+        the same embedder, so it stays keyless in demo mode.
+        """
+        # Imported here to avoid a circular import at module load.
+        from app.services.link_service import LinkService
+
+        links = LinkService(self.session)
+        event = await self.events.get_event(event_id, tenant_id)
+        linked = await links.linked_events(event_id, tenant_id)
+        sessions: list[AgendaSession] = list(event.sessions)
+        # Re-fetch each linked event through get_event so its sessions are eagerly
+        # loaded (linked_events does not eager-load the sessions relationship).
+        for ev in linked:
+            full = await self.events.get_event(ev.id, tenant_id)
+            sessions.extend(full.sessions)
+        query_vec = self.embed(interests)
+        return self._rank(query_vec, sessions, limit)
+
     def match_attendees(
         self, attendees: list[AttendeeProfile], limit: int = 5
     ) -> list[AttendeeMatch]:

@@ -22,6 +22,7 @@ from app.models import event as _event  # noqa: F401
 from app.models import identity as _identity  # noqa: F401
 from app.models import registration as _registration  # noqa: F401
 from app.models import hackathon as _hackathon  # noqa: F401
+from app.models import link as _link  # noqa: F401
 
 config = context.config
 if config.config_file_name is not None:

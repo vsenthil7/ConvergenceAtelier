@@ -465,3 +465,45 @@ async def test_webinar_routes_called_directly(seeded):
         svc = WebinarService(s)
         with pytest.raises(ForbiddenError):
             await webinar_waitlist(eid, user=attendee, svc=svc)
+
+
+async def test_link_routes_called_directly(seeded):
+    """Cover every event-link route handler body deterministically (S7.5)."""
+    from app.api.links import (
+        combined_catalog,
+        create_link,
+        list_links,
+        remove_link,
+    )
+    from app.models.identity import User
+    from app.schemas.link import LinkRequest
+    from app.services.link_service import LinkService
+    from tests.conftest import make_event, make_session
+
+    maker = seeded["maker"]
+    t1 = seeded["ids"]["t1"]
+    e1 = await make_event(maker, t1, "Flagship")
+    e2 = await make_event(maker, t1, "Online")
+    await make_session(maker, e1, title="In-person Talk")
+    await make_session(maker, e2, title="Online Talk")
+    admin = User(id=seeded["ids"]["a1"], email="a1@x.com", role=Role.TENANT_ADMIN, tenant_id=t1)
+    plain = User(id=seeded["ids"]["u1"], email="u1@x.com", role=Role.USER, tenant_id=t1)
+
+    async with maker() as s:
+        svc = LinkService(s)
+        linked = await create_link(e1, LinkRequest(other_event_id=e2), user=admin, svc=svc)
+        assert [e.id for e in linked] == [e2]
+        listing = await list_links(e1, user=admin, svc=svc)
+        assert [e.id for e in listing] == [e2]
+        catalog = await combined_catalog(e1, user=admin, svc=svc)
+        assert {c.title for c in catalog} == {"In-person Talk", "Online Talk"}
+        after = await remove_link(e1, e2, user=admin, svc=svc)
+        assert after == []
+
+    # RBAC: a plain USER cannot link or unlink.
+    async with maker() as s:
+        svc = LinkService(s)
+        with pytest.raises(ForbiddenError):
+            await create_link(e1, LinkRequest(other_event_id=e2), user=plain, svc=svc)
+        with pytest.raises(ForbiddenError):
+            await remove_link(e1, e2, user=plain, svc=svc)

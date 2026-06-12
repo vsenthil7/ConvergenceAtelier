@@ -15,6 +15,7 @@ from app.core.security import hash_password
 from app.models.event import Event, EventType, Session, SessionMode
 from app.models.hackathon import Score, Submission, SubmissionStatus, Team, TeamMember
 from app.models.identity import Role, Tenant, User
+from app.models.link import EventLink
 from app.models.registration import EventRegistration, RegistrationStatus
 
 DEMO_PASSWORD = "Atelier!2026"  # noqa: S105 — demo-only credential, documented.
@@ -45,6 +46,7 @@ async def seed_demo(session: AsyncSession) -> bool:
     # and collect (tenant_id, attendee_id) per tenant for the demo webinar.
     first_tenant_id: str | None = None
     first_user_id: str | None = None
+    first_event_id: str | None = None
     tenant_attendees: list[tuple[str, str]] = []
 
     specs = [
@@ -92,6 +94,8 @@ async def seed_demo(session: AsyncSession) -> bool:
         )
         session.add(event)
         await session.flush()
+        if first_event_id is None:
+            first_event_id = event.id
 
         # Sessions are scheduled ON the event's opening day at fixed clock hours
         # (09:00–15:00), so the Scheduler — which opens on the event start date at
@@ -134,6 +138,10 @@ async def seed_demo(session: AsyncSession) -> bool:
     # --- demo webinar (S7.4): capacity 2 + waitlist, reminders, a stream URL ---
     if len(tenant_attendees) >= 2:
         await _seed_webinar(session, tenant_attendees[1][0], now)
+
+    # --- demo linked events (S7.5): an online companion linked to the flagship ---
+    if first_tenant_id is not None and first_event_id is not None:
+        await _seed_links(session, first_tenant_id, first_event_id, now)
 
     await session.commit()
     return True
@@ -249,3 +257,45 @@ async def _seed_webinar(session: AsyncSession, tenant_id: str, now: datetime) ->
                 updated_at=now + timedelta(minutes=i),
             )
         )
+
+
+async def _seed_links(
+    session: AsyncSession, tenant_id: str, flagship_event_id: str, now: datetime
+) -> None:
+    """Seed an online companion event and link it to the flagship conference (S7.5).
+
+    Demonstrates a linked series: the in-person flagship plus an online edition,
+    each with its own session, joined by a symmetric EventLink so the combined
+    catalog spans both.
+    """
+    companion = Event(
+        tenant_id=tenant_id,
+        name="React Summit Online 2026",
+        location="Online",
+        description="The online companion to the flagship, same series.",
+        event_type=EventType.HYBRID,
+        config={},
+        starts_at=now + timedelta(days=32),
+        ends_at=now + timedelta(days=32, hours=8),
+    )
+    session.add(companion)
+    await session.flush()
+
+    day = companion.starts_at.replace(hour=9, minute=0, second=0, microsecond=0)
+    session.add(
+        Session(
+            event_id=companion.id,
+            title="Remote Keynote: Scaling the Community",
+            track="Main",
+            speaker="Online Host",
+            mode=SessionMode.ONLINE,
+            stream_url="https://stream.demo/online-keynote",
+            recording_url="",
+            starts_at=day,
+            ends_at=day + timedelta(hours=1),
+        )
+    )
+
+    # Symmetric link in canonical order (smaller id first).
+    a, b = sorted([flagship_event_id, companion.id])
+    session.add(EventLink(event_a_id=a, event_b_id=b))

@@ -7,6 +7,7 @@ from app.config import Settings
 from app.models.event import Event, EventType, Session, SessionMode
 from app.models.hackathon import Submission, Team
 from app.models.identity import Role, Tenant, User
+from app.models.link import EventLink
 from app.models.registration import EventRegistration, RegistrationStatus
 from app.services.seed import seed_demo
 
@@ -26,8 +27,8 @@ async def test_seed_creates_demo_data(db):
         )
     assert tenants == 2
     assert users == 8  # 1 super + 2 tenant-admins + 2 users + 3 webinar guests
-    assert events == 4  # 2 conferences + 1 hackathon + 1 webinar
-    assert sessions == 12  # 6 multi-track sessions per conference (typed events have none)
+    assert events == 5  # 2 conferences + 1 hackathon + 1 webinar + 1 online companion
+    assert sessions == 13  # 6 per conference + 1 on the online companion
     assert supers == 1
 
 
@@ -96,6 +97,25 @@ async def test_seed_includes_demo_webinar(db):
     assert webinar.config.get("reminders") == ["24h", "1h"]
     statuses = sorted(r.status.value for r in regs)
     assert statuses == ["registered", "registered", "waitlisted"]
+
+
+async def test_seed_includes_demo_linked_events(db):
+    """S7.5: the seed links the flagship to an online companion (one EventLink)."""
+    maker = db
+    async with maker() as s:
+        await seed_demo(s)
+    async with maker() as s:
+        links = (await s.execute(select(EventLink))).scalars().all()
+        companion = (
+            await s.execute(
+                select(Event).where(Event.name == "React Summit Online 2026")
+            )
+        ).scalar_one()
+    assert len(links) == 1
+    assert companion.event_type == EventType.HYBRID
+    # the link references the companion on one side of the pair
+    pair = {links[0].event_a_id, links[0].event_b_id}
+    assert companion.id in pair
 
 
 async def test_seed_is_idempotent(db):
